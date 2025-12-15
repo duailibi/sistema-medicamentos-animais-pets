@@ -1,9 +1,11 @@
 {
   "animals": {
-    "frajo la": {
-      "id": "frajo la",
+    "frajola": {
+      "id": "frajola",
       "name": "Frajola",
       "weight": "4,5 kg",
+      "breed": "SRD",
+      "type": "cat",
       "icon": "🐱",
       "medications": {
         "vetmaxplus_123456": {
@@ -55,36 +57,7 @@
             "2026-01-09",
             "2026-01-11",
             "2026-01-13",
-            "2026-01-15",
-            "2026-01-17",
-            "2026-01-19",
-            "2026-01-21",
-            "2026-01-23",
-            "2026-01-25",
-            "2026-01-27",
-            "2026-01-29",
-            "2026-01-31",
-            "2026-02-02",
-            "2026-02-04",
-            "2026-02-06",
-            "2026-02-08",
-            "2026-02-10",
-            "2026-02-12",
-            "2026-02-14",
-            "2026-02-16",
-            "2026-02-18",
-            "2026-02-20",
-            "2026-02-22",
-            "2026-02-24",
-            "2026-02-26",
-            "2026-02-28",
-            "2026-03-02",
-            "2026-03-04",
-            "2026-03-06",
-            "2026-03-08",
-            "2026-03-10",
-            "2026-03-12",
-            "2026-03-14"
+            "2026-01-15"
           ]
         }
       }
@@ -93,6 +66,8 @@
       "id": "nenem",
       "name": "Neném",
       "weight": "3,8 kg",
+      "breed": "SRD",
+      "type": "cat",
       "icon": "🐱",
       "medications": {
         "petsporin_123458": {
@@ -351,26 +326,64 @@
             "2026-01-11_morning",
             "2026-01-11_night",
             "2026-01-12_morning",
-            "2026-01-12_night",
-            "2026-01-13_morning",
-            "2026-01-13_night",
-            "2026-01-14_morning",
-            "2026-01-14_night",
-            "2026-01-15_morning",
-            "2026-01-15_night",
-            "2026-01-16_morning",
-            "2026-01-16_night",
-            "2026-01-17_morning",
-            "2026-01-17_night",
-            "2026-01-18_morning",
-            "2026-01-18_night"
+            "2026-01-12_night"
           ]
         }
       }
     }
   },
+  "medications_cache": {
+    "vetmax_plus": {
+      "name": "Vetmax Plus",
+      "common_dosage": "½ comprimido",
+      "type": "antibiótico",
+      "category": "comprimido"
+    },
+    "omegablue_esqualeno": {
+      "name": "Omegablue Esqualeno",
+      "common_dosage": "1 cápsula",
+      "type": "suplemento",
+      "category": "cápsula"
+    },
+    "petsporin_75mg": {
+      "name": "Petsporin 75 mg",
+      "common_dosage": "½ comprimido",
+      "type": "antibiótico",
+      "category": "comprimido"
+    },
+    "mellis_vet_05mg": {
+      "name": "Mellis Vet 0,5 mg",
+      "common_dosage": "1 comprimido",
+      "type": "analgésico",
+      "category": "comprimido"
+    },
+    "hemocare": {
+      "name": "Hemocare",
+      "common_dosage": "0,4 ml",
+      "type": "suplemento",
+      "category": "líquido"
+    },
+    "promun_cat_pasta": {
+      "name": "Promun Cat Pasta",
+      "common_dosage": "2 ml",
+      "type": "suplemento",
+      "category": "pasta"
+    },
+    "dipirona_gotas": {
+      "name": "Dipirona gotas",
+      "common_dosage": "3 gotas",
+      "type": "analgésico",
+      "category": "líquido"
+    },
+    "vetaglos_pomada": {
+      "name": "Vetaglós pomada",
+      "common_dosage": "Aplicação tópica",
+      "type": "pomada",
+      "category": "tópico"
+    }
+  },
   "calendarMonth": 11,
   "calendarYear": 2025,
   "lastUpdated": "2025-12-14T10:30:00.000Z",
-  "version": "2.0"
+  "version": "3.0"
 }
