@@ -207,6 +207,11 @@
             animation: pulse 2s infinite;
         }
         
+        .upcoming-item.overdue {
+            border-left: 4px solid var(--warning);
+            animation: pulse 1s infinite;
+        }
+        
         @keyframes pulse {
             0% { box-shadow: 0 0 0 0 rgba(208, 2, 27, 0.4); }
             70% { box-shadow: 0 0 0 10px rgba(208, 2, 27, 0); }
@@ -219,6 +224,10 @@
             text-align: center;
             margin: 10px 0;
             color: var(--primary);
+        }
+        
+        .overdue-timer {
+            color: var(--warning);
         }
         
         .progress-bar-container {
@@ -344,6 +353,11 @@
         .status-upcoming {
             background-color: #d1ecf1;
             color: #0c5460;
+        }
+        
+        .status-overdue {
+            background-color: #f5a623;
+            color: white;
         }
         
         .btn {
@@ -541,6 +555,11 @@
             border-left: 2px solid var(--night);
         }
         
+        .medication-overdue {
+            background-color: rgba(245, 166, 35, 0.3);
+            border-left: 2px solid var(--warning);
+        }
+        
         .management-section {
             background: var(--card-color);
             border-radius: 15px;
@@ -692,6 +711,39 @@
             border: 1px solid var(--border-color);
         }
         
+        .tab-container {
+            margin-top: 20px;
+        }
+        
+        .tab-buttons {
+            display: flex;
+            border-bottom: 2px solid var(--border-color);
+            margin-bottom: 15px;
+        }
+        
+        .tab-button {
+            padding: 10px 20px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+        
+        .tab-button.active {
+            border-bottom-color: var(--primary);
+            color: var(--primary);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
         /* Responsividade */
         @media (max-width: 768px) {
             .animal-cards {
@@ -796,6 +848,11 @@
             color: #80cbc4;
         }
         
+        body[data-theme="dark"] .status-overdue {
+            background-color: #ff6f00;
+            color: #ffe0b2;
+        }
+        
         /* Scrollbar personalizada */
         ::-webkit-scrollbar {
             width: 8px;
@@ -852,6 +909,17 @@
         .gap-10 {
             gap: 10px;
         }
+        
+        .error-message {
+            color: var(--danger);
+            font-size: 0.8rem;
+            margin-top: 3px;
+            display: none;
+        }
+        
+        .input-error {
+            border-color: var(--danger) !important;
+        }
     </style>
 </head>
 <body data-theme="light">
@@ -895,6 +963,10 @@
                 <div class="time-box">
                     <i class="fas fa-syringe"></i>
                     <div id="next-medication-count">Próximas: 0</div>
+                </div>
+                <div class="time-box" id="overdue-medication-count" style="background-color: rgba(245, 166, 35, 0.2); display: none;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div>Atrasadas: <span id="overdue-count">0</span></div>
                 </div>
             </div>
         </header>
@@ -998,98 +1070,180 @@
         <div class="management-section">
             <h2><i class="fas fa-cogs"></i> Gerenciamento do Sistema</h2>
             
-            <div class="form-grid">
-                <div>
-                    <h3><i class="fas fa-plus-circle"></i> Adicionar Novo Animal</h3>
-                    <div class="form-group">
-                        <label for="new-animal-name">Nome do Animal:</label>
-                        <input type="text" id="new-animal-name" placeholder="Ex: Tom">
-                    </div>
-                    <div class="form-group">
-                        <label for="new-animal-weight">Peso:</label>
-                        <input type="text" id="new-animal-weight" placeholder="Ex: 5,2 kg">
-                    </div>
-                    <div class="form-group">
-                        <label for="new-animal-icon">Ícone:</label>
-                        <select id="new-animal-icon">
-                            <option value="🐱">🐱 Gato</option>
-                            <option value="🐶">🐶 Cachorro</option>
-                            <option value="🐰">🐰 Coelho</option>
-                            <option value="🐹">🐹 Hamster</option>
-                        </select>
-                    </div>
-                    <button class="btn btn-add" onclick="addNewAnimal()">
-                        <i class="fas fa-plus"></i> Adicionar Animal
-                    </button>
+            <div class="tab-container">
+                <div class="tab-buttons">
+                    <button class="tab-button active" onclick="openTab(event, 'tab-animals')">Animais</button>
+                    <button class="tab-button" onclick="openTab(event, 'tab-medications')">Medicamentos</button>
+                    <button class="tab-button" onclick="openTab(event, 'tab-cache')">Cache</button>
                 </div>
                 
-                <div>
-                    <h3><i class="fas fa-pills"></i> Adicionar Medicamento</h3>
-                    <div class="form-group">
-                        <label for="med-animal-select">Animal:</label>
-                        <select id="med-animal-select">
-                            <!-- Preenchido por JavaScript -->
-                        </select>
+                <!-- Tab Animais -->
+                <div id="tab-animals" class="tab-content active">
+                    <div class="form-grid">
+                        <div>
+                            <h3><i class="fas fa-plus-circle"></i> Adicionar Novo Animal</h3>
+                            <div class="form-group">
+                                <label for="new-animal-name">Nome do Animal:</label>
+                                <input type="text" id="new-animal-name" placeholder="Ex: Tom" maxlength="30">
+                                <div class="error-message" id="animal-name-error"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="new-animal-weight">Peso (kg):</label>
+                                <input type="number" id="new-animal-weight" placeholder="Ex: 5.2" min="0.1" max="200" step="0.1">
+                                <div class="error-message" id="animal-weight-error"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="new-animal-icon">Ícone:</label>
+                                <select id="new-animal-icon">
+                                    <option value="🐱">🐱 Gato</option>
+                                    <option value="🐶">🐶 Cachorro</option>
+                                    <option value="🐰">🐰 Coelho</option>
+                                    <option value="🐹">🐹 Hamster</option>
+                                    <option value="🐦">🐦 Pássaro</option>
+                                    <option value="🐢">🐢 Tartaruga</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-add" onclick="addNewAnimal()">
+                                <i class="fas fa-plus"></i> Adicionar Animal
+                            </button>
+                        </div>
+                        
+                        <div>
+                            <h3><i class="fas fa-list"></i> Animais Cadastrados</h3>
+                            <div class="animals-list" id="animals-management-list">
+                                <!-- Preenchido por JavaScript -->
+                            </div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="new-med-name">Nome do Medicamento:</label>
-                        <input type="text" id="new-med-name" placeholder="Ex: Antibiótico">
-                    </div>
-                    <div class="form-group">
-                        <label for="new-med-dosage">Dosagem:</label>
-                        <input type="text" id="new-med-dosage" placeholder="Ex: 1 comprimido">
-                    </div>
-                    <div class="form-group">
-                        <label for="new-med-frequency">Frequência:</label>
-                        <select id="new-med-frequency">
-                            <option value="daily">1x ao dia</option>
-                            <option value="12h">12/12h</option>
-                            <option value="48h">A cada 48h</option>
-                            <option value="weekly">1x por semana</option>
-                            <option value="custom">Personalizado</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="new-med-start-date">Data de Início:</label>
-                        <input type="date" id="new-med-start-date">
-                    </div>
-                    <div class="form-group">
-                        <label for="new-med-duration-type">Duração:</label>
-                        <select id="new-med-duration-type">
-                            <option value="days">Número de dias</option>
-                            <option value="end_date">Data de término</option>
-                            <option value="continuous">Contínuo</option>
-                        </select>
-                    </div>
-                    <div class="form-group" id="duration-days-container">
-                        <label for="new-med-duration-days">Número de dias:</label>
-                        <input type="number" id="new-med-duration-days" min="1" value="7">
-                    </div>
-                    <div class="form-group hidden" id="end-date-container">
-                        <label for="new-med-end-date">Data de Término:</label>
-                        <input type="date" id="new-med-end-date">
-                    </div>
-                    <button class="btn btn-add" onclick="addNewMedication()">
-                        <i class="fas fa-plus"></i> Adicionar Medicamento
-                    </button>
                 </div>
-            </div>
-            
-            <div class="cache-controls">
-                <h3 style="margin-top: 20px;"><i class="fas fa-database"></i> Controle de Cache</h3>
-                <div class="controls">
-                    <button class="btn btn-warning" onclick="clearAppCache()">
-                        <i class="fas fa-trash-alt"></i> Limpar Cache do App
-                    </button>
-                    <button class="btn btn-edit" onclick="exportData()">
-                        <i class="fas fa-download"></i> Exportar Dados
-                    </button>
-                    <button class="btn btn-edit" onclick="importData()">
-                        <i class="fas fa-upload"></i> Importar Dados
-                    </button>
-                    <button class="btn btn-danger" onclick="resetAllData()">
-                        <i class="fas fa-exclamation-triangle"></i> Resetar Tudo
-                    </button>
+                
+                <!-- Tab Medicamentos -->
+                <div id="tab-medications" class="tab-content">
+                    <div class="form-grid">
+                        <div>
+                            <h3><i class="fas fa-pills"></i> Adicionar Medicamento</h3>
+                            <div class="form-group">
+                                <label for="med-animal-select">Animal:</label>
+                                <select id="med-animal-select">
+                                    <!-- Preenchido por JavaScript -->
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="new-med-name">Nome do Medicamento:</label>
+                                <input type="text" id="new-med-name" placeholder="Ex: Antibiótico" maxlength="50">
+                                <div class="error-message" id="med-name-error"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="new-med-dosage">Dosagem:</label>
+                                <input type="text" id="new-med-dosage" placeholder="Ex: 1 comprimido" maxlength="30">
+                                <div class="error-message" id="med-dosage-error"></div>
+                            </div>
+                            <div class="form-group">
+                                <label for="new-med-frequency">Frequência:</label>
+                                <select id="new-med-frequency" onchange="toggleCustomFrequency()">
+                                    <option value="daily">1x ao dia</option>
+                                    <option value="12h">12/12h</option>
+                                    <option value="48h">A cada 48h</option>
+                                    <option value="weekly">1x por semana</option>
+                                    <option value="custom">Personalizado</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Campos para frequência personalizada -->
+                            <div id="custom-frequency-fields" class="hidden">
+                                <div class="form-group">
+                                    <label for="custom-frequency-value">Intervalo (horas):</label>
+                                    <input type="number" id="custom-frequency-value" min="1" max="720" value="24">
+                                    <div class="error-message" id="custom-frequency-error"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="new-med-schedule">Horário:</label>
+                                <select id="new-med-schedule">
+                                    <option value="morning">Manhã (07:30-08:00)</option>
+                                    <option value="night">Noite (19:30-21:00)</option>
+                                    <option value="both">Manhã e Noite</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="new-med-start-date">Data de Início:</label>
+                                <input type="date" id="new-med-start-date">
+                            </div>
+                            <div class="form-group">
+                                <label for="new-med-duration-type">Duração:</label>
+                                <select id="new-med-duration-type" onchange="toggleDurationFields()">
+                                    <option value="days">Número de dias</option>
+                                    <option value="end_date">Data de término</option>
+                                    <option value="continuous">Contínuo</option>
+                                </select>
+                            </div>
+                            <div class="form-group" id="duration-days-container">
+                                <label for="new-med-duration-days">Número de dias:</label>
+                                <input type="number" id="new-med-duration-days" min="1" max="365" value="7">
+                                <div class="error-message" id="duration-days-error"></div>
+                            </div>
+                            <div class="form-group hidden" id="end-date-container">
+                                <label for="new-med-end-date">Data de Término:</label>
+                                <input type="date" id="new-med-end-date">
+                            </div>
+                            <button class="btn btn-add" onclick="addNewMedication()">
+                                <i class="fas fa-plus"></i> Adicionar Medicamento
+                            </button>
+                        </div>
+                        
+                        <div>
+                            <h3><i class="fas fa-prescription"></i> Medicamentos Pré-cadastrados</h3>
+                            <div class="controls" style="margin-bottom: 15px;">
+                                <button class="btn btn-edit btn-small" onclick="addPreloadedMedication('frajo la', 'Vetmax Plus', '½ comprimido', 'daily', 'morning', 3)">
+                                    <i class="fas fa-plus"></i> Vetmax Plus (Frajola)
+                                </button>
+                                <button class="btn btn-edit btn-small" onclick="addPreloadedMedication('frajo la', 'Omegablue Esqualeno', '1 cápsula', '48h', 'night', null)">
+                                    <i class="fas fa-plus"></i> Omegablue (Frajola)
+                                </button>
+                            </div>
+                            <div style="font-size: 0.85rem; color: var(--text-color); opacity: 0.8; margin-top: 10px;">
+                                Clique para adicionar medicamentos pré-cadastrados
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Tab Cache -->
+                <div id="tab-cache" class="tab-content">
+                    <h3><i class="fas fa-database"></i> Controle de Cache</h3>
+                    <div class="controls">
+                        <button class="btn btn-warning" onclick="clearAppCache()">
+                            <i class="fas fa-trash-alt"></i> Limpar Cache do App
+                        </button>
+                        <button class="btn btn-edit" onclick="exportData()">
+                            <i class="fas fa-download"></i> Exportar Dados
+                        </button>
+                        <button class="btn btn-edit" onclick="importData()">
+                            <i class="fas fa-upload"></i> Importar Dados
+                        </button>
+                        <button class="btn btn-danger" onclick="resetAllData()">
+                            <i class="fas fa-exclamation-triangle"></i> Resetar Tudo
+                        </button>
+                        <button class="btn btn-add" onclick="vetSystem.loadDefaultData()">
+                            <i class="fas fa-cat"></i> Carregar Dados dos Gatos
+                        </button>
+                    </div>
+                    
+                    <div style="margin-top: 20px;">
+                        <h4>Cache de Medicamentos</h4>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
+                            <button class="btn btn-add btn-small" onclick="addAllPreloadedMedications()">
+                                <i class="fas fa-vial"></i> Carregar Todos Medicamentos Exemplo
+                            </button>
+                            <button class="btn btn-edit btn-small" onclick="saveMedicationsToCache()">
+                                <i class="fas fa-save"></i> Salvar Medicamentos em Cache
+                            </button>
+                            <button class="btn btn-warning btn-small" onclick="clearMedicationsCache()">
+                                <i class="fas fa-trash"></i> Limpar Medicamentos do Cache
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1111,10 +1265,389 @@
     </div>
 
     <script>
+        // Dados pré-configurados dos gatos
+        const DEFAULT_DATA = {
+            "animals": {
+                "frajo la": {
+                    "id": "frajo la",
+                    "name": "Frajola",
+                    "weight": "4,5 kg",
+                    "icon": "🐱",
+                    "medications": {
+                        "vetmaxplus_123456": {
+                            "id": "vetmaxplus_123456",
+                            "name": "Vetmax Plus",
+                            "dosage": "½ comprimido",
+                            "frequency": "daily",
+                            "schedule": "morning",
+                            "startDate": "2025-12-14",
+                            "duration": 3,
+                            "durationType": "days",
+                            "history": [],
+                            "scheduledDates": [
+                                "2025-12-14",
+                                "2025-12-15",
+                                "2025-12-16",
+                                "2025-12-29",
+                                "2025-12-30",
+                                "2025-12-31",
+                                "2026-01-13",
+                                "2026-01-14",
+                                "2026-01-15"
+                            ]
+                        },
+                        "omegablue_123457": {
+                            "id": "omegablue_123457",
+                            "name": "Omegablue Esqualeno",
+                            "dosage": "1 cápsula",
+                            "frequency": "48h",
+                            "schedule": "night",
+                            "startDate": "2025-12-14",
+                            "duration": null,
+                            "durationType": "continuous",
+                            "history": [],
+                            "scheduledDates": [
+                                "2025-12-14",
+                                "2025-12-16",
+                                "2025-12-18",
+                                "2025-12-20",
+                                "2025-12-22",
+                                "2025-12-24",
+                                "2025-12-26",
+                                "2025-12-28",
+                                "2025-12-30",
+                                "2026-01-01",
+                                "2026-01-03",
+                                "2026-01-05",
+                                "2026-01-07",
+                                "2026-01-09",
+                                "2026-01-11",
+                                "2026-01-13",
+                                "2026-01-15",
+                                "2026-01-17",
+                                "2026-01-19",
+                                "2026-01-21",
+                                "2026-01-23",
+                                "2026-01-25",
+                                "2026-01-27",
+                                "2026-01-29",
+                                "2026-01-31",
+                                "2026-02-02",
+                                "2026-02-04",
+                                "2026-02-06",
+                                "2026-02-08",
+                                "2026-02-10",
+                                "2026-02-12",
+                                "2026-02-14",
+                                "2026-02-16",
+                                "2026-02-18",
+                                "2026-02-20",
+                                "2026-02-22",
+                                "2026-02-24",
+                                "2026-02-26",
+                                "2026-02-28",
+                                "2026-03-02",
+                                "2026-03-04",
+                                "2026-03-06",
+                                "2026-03-08",
+                                "2026-03-10",
+                                "2026-03-12",
+                                "2026-03-14"
+                            ]
+                        }
+                    }
+                },
+                "nenem": {
+                    "id": "nenem",
+                    "name": "Neném",
+                    "weight": "3,8 kg",
+                    "icon": "🐱",
+                    "medications": {
+                        "petsporin_123458": {
+                            "id": "petsporin_123458",
+                            "name": "Petsporin 75 mg",
+                            "dosage": "½ comprimido",
+                            "frequency": "12h",
+                            "schedule": "both",
+                            "startDate": "2025-12-14",
+                            "duration": 7,
+                            "durationType": "days",
+                            "history": [],
+                            "scheduledDates": [
+                                "2025-12-14_morning",
+                                "2025-12-14_night",
+                                "2025-12-15_morning",
+                                "2025-12-15_night",
+                                "2025-12-16_morning",
+                                "2025-12-16_night",
+                                "2025-12-17_morning",
+                                "2025-12-17_night",
+                                "2025-12-18_morning",
+                                "2025-12-18_night",
+                                "2025-12-19_morning",
+                                "2025-12-19_night",
+                                "2025-12-20_morning",
+                                "2025-12-20_night"
+                            ]
+                        },
+                        "mellisvet_123459": {
+                            "id": "mellisvet_123459",
+                            "name": "Mellis Vet 0,5 mg",
+                            "dosage": "1 comprimido",
+                            "frequency": "daily",
+                            "schedule": "morning",
+                            "startDate": "2025-12-14",
+                            "duration": 5,
+                            "durationType": "days",
+                            "history": [],
+                            "scheduledDates": [
+                                "2025-12-14",
+                                "2025-12-15",
+                                "2025-12-16",
+                                "2025-12-17",
+                                "2025-12-18"
+                            ]
+                        },
+                        "hemocare_123460": {
+                            "id": "hemocare_123460",
+                            "name": "Hemocare",
+                            "dosage": "0,4 ml",
+                            "frequency": "daily",
+                            "schedule": "morning",
+                            "startDate": "2025-12-14",
+                            "duration": 30,
+                            "durationType": "days",
+                            "history": [],
+                            "scheduledDates": [
+                                "2025-12-14",
+                                "2025-12-15",
+                                "2025-12-16",
+                                "2025-12-17",
+                                "2025-12-18",
+                                "2025-12-19",
+                                "2025-12-20",
+                                "2025-12-21",
+                                "2025-12-22",
+                                "2025-12-23",
+                                "2025-12-24",
+                                "2025-12-25",
+                                "2025-12-26",
+                                "2025-12-27",
+                                "2025-12-28",
+                                "2025-12-29",
+                                "2025-12-30",
+                                "2025-12-31",
+                                "2026-01-01",
+                                "2026-01-02",
+                                "2026-01-03",
+                                "2026-01-04",
+                                "2026-01-05",
+                                "2026-01-06",
+                                "2026-01-07",
+                                "2026-01-08",
+                                "2026-01-09",
+                                "2026-01-10",
+                                "2026-01-11",
+                                "2026-01-12"
+                            ]
+                        },
+                        "promuncat_123461": {
+                            "id": "promuncat_123461",
+                            "name": "Promun Cat Pasta",
+                            "dosage": "2 ml",
+                            "frequency": "daily",
+                            "schedule": "morning",
+                            "startDate": "2025-12-14",
+                            "duration": null,
+                            "durationType": "continuous",
+                            "history": [],
+                            "scheduledDates": [
+                                "2025-12-14",
+                                "2025-12-15",
+                                "2025-12-16",
+                                "2025-12-17",
+                                "2025-12-18",
+                                "2025-12-19",
+                                "2025-12-20",
+                                "2025-12-21",
+                                "2025-12-22",
+                                "2025-12-23",
+                                "2025-12-24",
+                                "2025-12-25",
+                                "2025-12-26",
+                                "2025-12-27",
+                                "2025-12-28",
+                                "2025-12-29",
+                                "2025-12-30",
+                                "2025-12-31",
+                                "2026-01-01",
+                                "2026-01-02",
+                                "2026-01-03",
+                                "2026-01-04",
+                                "2026-01-05",
+                                "2026-01-06",
+                                "2026-01-07",
+                                "2026-01-08",
+                                "2026-01-09",
+                                "2026-01-10",
+                                "2026-01-11",
+                                "2026-01-12",
+                                "2026-01-13",
+                                "2026-01-14",
+                                "2026-01-15",
+                                "2026-01-16",
+                                "2026-01-17",
+                                "2026-01-18",
+                                "2026-01-19",
+                                "2026-01-20",
+                                "2026-01-21",
+                                "2026-01-22",
+                                "2026-01-23",
+                                "2026-01-24",
+                                "2026-01-25",
+                                "2026-01-26",
+                                "2026-01-27",
+                                "2026-01-28",
+                                "2026-01-29",
+                                "2026-01-30",
+                                "2026-01-31",
+                                "2026-02-01",
+                                "2026-02-02",
+                                "2026-02-03",
+                                "2026-02-04",
+                                "2026-02-05",
+                                "2026-02-06",
+                                "2026-02-07",
+                                "2026-02-08",
+                                "2026-02-09",
+                                "2026-02-10",
+                                "2026-02-11",
+                                "2026-02-12"
+                            ]
+                        },
+                        "dipirona_123462": {
+                            "id": "dipirona_123462",
+                            "name": "Dipirona gotas",
+                            "dosage": "3 gotas",
+                            "frequency": "12h",
+                            "schedule": "both",
+                            "startDate": "2025-12-14",
+                            "duration": 5,
+                            "durationType": "days",
+                            "conditional": true,
+                            "history": [],
+                            "scheduledDates": [
+                                "2025-12-14_morning",
+                                "2025-12-14_night",
+                                "2025-12-15_morning",
+                                "2025-12-15_night",
+                                "2025-12-16_morning",
+                                "2025-12-16_night",
+                                "2025-12-17_morning",
+                                "2025-12-17_night",
+                                "2025-12-18_morning",
+                                "2025-12-18_night"
+                            ]
+                        },
+                        "vetaglos_123463": {
+                            "id": "vetaglos_123463",
+                            "name": "Vetaglós pomada",
+                            "dosage": "Aplicação tópica",
+                            "frequency": "12h",
+                            "schedule": "both",
+                            "startDate": "2025-12-14",
+                            "duration": null,
+                            "durationType": "continuous",
+                            "history": [],
+                            "scheduledDates": [
+                                "2025-12-14_morning",
+                                "2025-12-14_night",
+                                "2025-12-15_morning",
+                                "2025-12-15_night",
+                                "2025-12-16_morning",
+                                "2025-12-16_night",
+                                "2025-12-17_morning",
+                                "2025-12-17_night",
+                                "2025-12-18_morning",
+                                "2025-12-18_night",
+                                "2025-12-19_morning",
+                                "2025-12-19_night",
+                                "2025-12-20_morning",
+                                "2025-12-20_night",
+                                "2025-12-21_morning",
+                                "2025-12-21_night",
+                                "2025-12-22_morning",
+                                "2025-12-22_night",
+                                "2025-12-23_morning",
+                                "2025-12-23_night",
+                                "2025-12-24_morning",
+                                "2025-12-24_night",
+                                "2025-12-25_morning",
+                                "2025-12-25_night",
+                                "2025-12-26_morning",
+                                "2025-12-26_night",
+                                "2025-12-27_morning",
+                                "2025-12-27_night",
+                                "2025-12-28_morning",
+                                "2025-12-28_night",
+                                "2025-12-29_morning",
+                                "2025-12-29_night",
+                                "2025-12-30_morning",
+                                "2025-12-30_night",
+                                "2025-12-31_morning",
+                                "2025-12-31_night",
+                                "2026-01-01_morning",
+                                "2026-01-01_night",
+                                "2026-01-02_morning",
+                                "2026-01-02_night",
+                                "2026-01-03_morning",
+                                "2026-01-03_night",
+                                "2026-01-04_morning",
+                                "2026-01-04_night",
+                                "2026-01-05_morning",
+                                "2026-01-05_night",
+                                "2026-01-06_morning",
+                                "2026-01-06_night",
+                                "2026-01-07_morning",
+                                "2026-01-07_night",
+                                "2026-01-08_morning",
+                                "2026-01-08_night",
+                                "2026-01-09_morning",
+                                "2026-01-09_night",
+                                "2026-01-10_morning",
+                                "2026-01-10_night",
+                                "2026-01-11_morning",
+                                "2026-01-11_night",
+                                "2026-01-12_morning",
+                                "2026-01-12_night",
+                                "2026-01-13_morning",
+                                "2026-01-13_night",
+                                "2026-01-14_morning",
+                                "2026-01-14_night",
+                                "2026-01-15_morning",
+                                "2026-01-15_night",
+                                "2026-01-16_morning",
+                                "2026-01-16_night",
+                                "2026-01-17_morning",
+                                "2026-01-17_night",
+                                "2026-01-18_morning",
+                                "2026-01-18_night"
+                            ]
+                        }
+                    }
+                }
+            },
+            "calendarMonth": 11,
+            "calendarYear": 2025,
+            "lastUpdated": "2025-12-14T10:30:00.000Z",
+            "version": "2.0"
+        };
+
         // Sistema de cache avançado
         class CacheManager {
             constructor() {
                 this.appCacheKey = 'vetmed_app_data';
+                this.medicationsCacheKey = 'vetmed_medications_cache';
                 this.appCacheLimit = 0.3; // 30% do storage disponível
             }
             
@@ -1151,10 +1684,31 @@
                 showNotification('Cache da aplicação limpo com sucesso!');
             }
             
-            clearAllCache() {
-                localStorage.clear();
+            clearMedicationsCache() {
+                localStorage.removeItem(this.medicationsCacheKey);
                 this.updateCacheDisplay();
-                showNotification('Todo o cache limpo com sucesso!');
+                showNotification('Cache de medicamentos limpo com sucesso!', 'info');
+            }
+            
+            saveMedicationsToCache(medications) {
+                try {
+                    localStorage.setItem(this.medicationsCacheKey, JSON.stringify(medications));
+                    this.updateCacheDisplay();
+                    return true;
+                } catch (e) {
+                    console.error('Erro ao salvar medicamentos no cache:', e);
+                    return false;
+                }
+            }
+            
+            getMedicationsFromCache() {
+                try {
+                    const cached = localStorage.getItem(this.medicationsCacheKey);
+                    return cached ? JSON.parse(cached) : null;
+                } catch (e) {
+                    console.error('Erro ao carregar medicamentos do cache:', e);
+                    return null;
+                }
             }
             
             updateCacheDisplay() {
@@ -1191,123 +1745,88 @@
                 this.selectedDay = null;
                 this.upcomingTimers = [];
                 
-                // Estado inicial dos animais
-                this.animals = {
-                    'frajo la': {
-                        id: 'frajo la',
-                        name: 'Frajola',
-                        weight: '4,5 kg',
-                        icon: '🐱',
-                        medications: {
-                            'vetmax': {
-                                id: 'vetmax',
-                                name: 'Vetmax Plus',
-                                dosage: '½ comprimido',
-                                frequency: 'daily',
-                                schedule: 'morning',
-                                startDate: this.getCurrentDate(),
-                                duration: 3,
-                                durationType: 'days',
-                                repeatAfter: 15,
-                                history: [],
-                                scheduledDates: this.generateScheduledDates('daily', this.getCurrentDate(), 3, 'days')
-                            },
-                            'omegablue': {
-                                id: 'omegablue',
-                                name: 'Omegablue Esqualeno',
-                                dosage: '1 cápsula',
-                                frequency: '48h',
-                                schedule: 'night',
-                                startDate: this.getCurrentDate(),
-                                duration: null,
-                                durationType: 'continuous',
-                                history: [],
-                                scheduledDates: this.generateScheduledDates('48h', this.getCurrentDate(), null, 'continuous')
-                            }
+                // Dados iniciais em cache
+                this.preloadedMedications = {
+                    'frajo la': [
+                        {
+                            name: 'Vetmax Plus',
+                            dosage: '½ comprimido',
+                            frequency: 'daily',
+                            schedule: 'morning',
+                            startDate: this.getCurrentDate(),
+                            duration: 3,
+                            durationType: 'days'
+                        },
+                        {
+                            name: 'Omegablue Esqualeno',
+                            dosage: '1 cápsula',
+                            frequency: '48h',
+                            schedule: 'night',
+                            startDate: this.getCurrentDate(),
+                            duration: null,
+                            durationType: 'continuous'
                         }
-                    },
-                    'nenem': {
-                        id: 'nenem',
-                        name: 'Neném',
-                        weight: '3,8 kg',
-                        icon: '🐱',
-                        medications: {
-                            'petsporin': {
-                                id: 'petsporin',
-                                name: 'Petsporin 75 mg',
-                                dosage: '½ comprimido',
-                                frequency: '12h',
-                                schedule: 'both',
-                                startDate: this.getCurrentDate(),
-                                duration: 7,
-                                durationType: 'days',
-                                history: [],
-                                scheduledDates: this.generateScheduledDates('12h', this.getCurrentDate(), 7, 'days')
-                            },
-                            'mellis': {
-                                id: 'mellis',
-                                name: 'Mellis Vet 0,5 mg',
-                                dosage: '1 comprimido',
-                                frequency: 'daily',
-                                schedule: 'morning',
-                                startDate: this.getCurrentDate(),
-                                duration: 5,
-                                durationType: 'days',
-                                history: [],
-                                scheduledDates: this.generateScheduledDates('daily', this.getCurrentDate(), 5, 'days')
-                            },
-                            'hemocare': {
-                                id: 'hemocare',
-                                name: 'Hemocare',
-                                dosage: '0,4 ml',
-                                frequency: 'daily',
-                                schedule: 'morning',
-                                startDate: this.getCurrentDate(),
-                                duration: 30,
-                                durationType: 'days',
-                                history: [],
-                                scheduledDates: this.generateScheduledDates('daily', this.getCurrentDate(), 30, 'days')
-                            },
-                            'promun': {
-                                id: 'promun',
-                                name: 'Promun Cat Pasta',
-                                dosage: '2 ml',
-                                frequency: 'daily',
-                                schedule: 'morning',
-                                startDate: this.getCurrentDate(),
-                                duration: null,
-                                durationType: 'continuous',
-                                history: [],
-                                scheduledDates: this.generateScheduledDates('daily', this.getCurrentDate(), null, 'continuous')
-                            },
-                            'dipirona': {
-                                id: 'dipirona',
-                                name: 'Dipirona gotas',
-                                dosage: '3 gotas',
-                                frequency: '12h',
-                                schedule: 'both',
-                                startDate: this.getCurrentDate(),
-                                duration: 5,
-                                durationType: 'days',
-                                conditional: true,
-                                history: [],
-                                scheduledDates: this.generateScheduledDates('12h', this.getCurrentDate(), 5, 'days')
-                            },
-                            'vetaglos': {
-                                id: 'vetaglos',
-                                name: 'Vetaglós pomada',
-                                dosage: 'Aplicação tópica',
-                                frequency: '12h',
-                                schedule: 'both',
-                                startDate: this.getCurrentDate(),
-                                duration: null,
-                                durationType: 'continuous',
-                                history: [],
-                                scheduledDates: this.generateScheduledDates('12h', this.getCurrentDate(), null, 'continuous')
-                            }
+                    ],
+                    'nenem': [
+                        {
+                            name: 'Petsporin 75 mg',
+                            dosage: '½ comprimido',
+                            frequency: '12h',
+                            schedule: 'both',
+                            startDate: this.getCurrentDate(),
+                            duration: 7,
+                            durationType: 'days'
+                        },
+                        {
+                            name: 'Mellis Vet 0,5 mg',
+                            dosage: '1 comprimido',
+                            frequency: 'daily',
+                            schedule: 'morning',
+                            startDate: this.getCurrentDate(),
+                            duration: 5,
+                            durationType: 'days'
+                        },
+                        {
+                            name: 'Hemocare',
+                            dosage: '0,4 ml',
+                            frequency: 'daily',
+                            schedule: 'morning',
+                            startDate: this.getCurrentDate(),
+                            duration: 30,
+                            durationType: 'days'
+                        },
+                        {
+                            name: 'Promun Cat Pasta',
+                            dosage: '2 ml',
+                            frequency: 'daily',
+                            schedule: 'morning',
+                            startDate: this.getCurrentDate(),
+                            duration: null,
+                            durationType: 'continuous'
+                        },
+                        {
+                            name: 'Dipirona gotas',
+                            dosage: '3 gotas',
+                            frequency: '12h',
+                            schedule: 'both',
+                            startDate: this.getCurrentDate(),
+                            duration: 5,
+                            durationType: 'days'
+                        },
+                        {
+                            name: 'Vetaglós pomada',
+                            dosage: 'Aplicação tópica',
+                            frequency: '12h',
+                            schedule: 'both',
+                            startDate: this.getCurrentDate(),
+                            duration: null,
+                            durationType: 'continuous'
                         }
-                    }
+                    ]
                 };
+                
+                // Estado inicial dos animais - começamos com dados vazios, serão carregados do cache ou padrão
+                this.animals = {};
             }
             
             init() {
@@ -1321,6 +1840,22 @@
                 setInterval(() => this.updateTime(), 1000);
                 setInterval(() => this.updateCacheDisplay(), 5000);
                 setInterval(() => this.updateUpcomingMedications(), 1000);
+            }
+            
+            loadDefaultData() {
+                if (confirm('Isso irá carregar os dados dos seus gatos (Frajola e Neném) com todos os medicamentos. Deseja continuar?')) {
+                    const data = DEFAULT_DATA;
+                    this.animals = data.animals || {};
+                    this.calendarMonth = data.calendarMonth || new Date().getMonth();
+                    this.calendarYear = data.calendarYear || new Date().getFullYear();
+                    
+                    this.saveToCache();
+                    this.populateAnimalSelect();
+                    this.populateExportAnimalSelect();
+                    this.renderAll();
+                    this.updateUpcomingMedications();
+                    showNotification('Dados dos seus gatos carregados com sucesso!');
+                }
             }
             
             setupTheme() {
@@ -1344,38 +1879,105 @@
             setupEventListeners() {
                 // Toggle de tipo de duração
                 const durationTypeSelect = document.getElementById('new-med-duration-type');
-                const daysContainer = document.getElementById('duration-days-container');
-                const endDateContainer = document.getElementById('end-date-container');
-                
-                durationTypeSelect.addEventListener('change', function() {
-                    if (this.value === 'days') {
-                        daysContainer.classList.remove('hidden');
-                        endDateContainer.classList.add('hidden');
-                    } else if (this.value === 'end_date') {
-                        daysContainer.classList.add('hidden');
-                        endDateContainer.classList.remove('hidden');
-                        
-                        // Define data de término padrão (7 dias após hoje)
-                        const endDateInput = document.getElementById('new-med-end-date');
-                        const today = new Date();
-                        const endDate = new Date(today);
-                        endDate.setDate(today.getDate() + 7);
-                        endDateInput.value = endDate.toISOString().split('T')[0];
-                    } else {
-                        daysContainer.classList.add('hidden');
-                        endDateContainer.classList.add('hidden');
-                    }
-                });
+                durationTypeSelect.addEventListener('change', () => this.toggleDurationFields());
                 
                 // Configura datas padrão
                 const startDateInput = document.getElementById('new-med-start-date');
-                startDateInput.value = this.getCurrentDate();
+                const today = new Date();
+                startDateInput.value = this.formatDate(today);
                 
                 const exportStartDate = document.getElementById('export-start-date');
                 const exportEndDate = document.getElementById('export-end-date');
-                const today = new Date();
                 exportStartDate.value = this.formatDate(today);
                 exportEndDate.value = this.formatDate(new Date(today.getFullYear(), today.getMonth() + 1, 0));
+                
+                // Validação em tempo real
+                this.setupValidation();
+            }
+            
+            toggleDurationFields() {
+                const durationTypeSelect = document.getElementById('new-med-duration-type');
+                const daysContainer = document.getElementById('duration-days-container');
+                const endDateContainer = document.getElementById('end-date-container');
+                
+                if (durationTypeSelect.value === 'days') {
+                    daysContainer.classList.remove('hidden');
+                    endDateContainer.classList.add('hidden');
+                } else if (durationTypeSelect.value === 'end_date') {
+                    daysContainer.classList.add('hidden');
+                    endDateContainer.classList.remove('hidden');
+                    
+                    // Define data de término padrão (7 dias após hoje)
+                    const endDateInput = document.getElementById('new-med-end-date');
+                    const today = new Date();
+                    const endDate = new Date(today);
+                    endDate.setDate(today.getDate() + 7);
+                    endDateInput.value = endDate.toISOString().split('T')[0];
+                } else {
+                    daysContainer.classList.add('hidden');
+                    endDateContainer.classList.add('hidden');
+                }
+            }
+            
+            toggleCustomFrequency() {
+                const frequencySelect = document.getElementById('new-med-frequency');
+                const customFields = document.getElementById('custom-frequency-fields');
+                
+                if (frequencySelect.value === 'custom') {
+                    customFields.classList.remove('hidden');
+                } else {
+                    customFields.classList.add('hidden');
+                }
+            }
+            
+            setupValidation() {
+                // Validação do peso do animal
+                const weightInput = document.getElementById('new-animal-weight');
+                weightInput.addEventListener('input', (e) => {
+                    const value = parseFloat(e.target.value);
+                    const errorElement = document.getElementById('animal-weight-error');
+                    
+                    if (value < 0.1 || value > 200) {
+                        e.target.classList.add('input-error');
+                        errorElement.textContent = 'Peso deve estar entre 0.1kg e 200kg';
+                        errorElement.style.display = 'block';
+                    } else {
+                        e.target.classList.remove('input-error');
+                        errorElement.style.display = 'none';
+                    }
+                });
+                
+                // Validação da dosagem
+                const dosageInput = document.getElementById('new-med-dosage');
+                dosageInput.addEventListener('input', (e) => {
+                    const value = e.target.value.trim();
+                    const errorElement = document.getElementById('med-dosage-error');
+                    
+                    if (value.length === 0) {
+                        e.target.classList.add('input-error');
+                        errorElement.textContent = 'A dosagem é obrigatória';
+                        errorElement.style.display = 'block';
+                    } else {
+                        e.target.classList.remove('input-error');
+                        errorElement.style.display = 'none';
+                    }
+                });
+                
+                // Validação dos dias de duração
+                const durationDaysInput = document.getElementById('new-med-duration-days');
+                durationDaysInput.addEventListener('input', (e) => {
+                    const value = parseInt(e.target.value);
+                    const errorElement = document.getElementById('duration-days-error');
+                    
+                    if (value < 1 || value > 365) {
+                        e.target.classList.add('input-error');
+                        errorElement.textContent = 'Duração deve ser entre 1 e 365 dias';
+                        errorElement.style.display = 'block';
+                    } else {
+                        e.target.classList.remove('input-error');
+                        errorElement.style.display = 'none';
+                    }
+                });
             }
             
             getCurrentDate() {
@@ -1386,7 +1988,7 @@
                 return date.toISOString().split('T')[0];
             }
             
-            generateScheduledDates(frequency, startDate, duration, durationType) {
+            generateScheduledDates(frequency, startDate, duration, durationType, customHours = 24) {
                 const scheduledDates = [];
                 const start = new Date(startDate);
                 
@@ -1395,21 +1997,7 @@
                     for (let i = 0; i < 90; i++) {
                         const date = new Date(start);
                         date.setDate(start.getDate() + i);
-                        
-                        if (frequency === 'daily') {
-                            scheduledDates.push(date.toISOString().split('T')[0]);
-                        } else if (frequency === '12h') {
-                            scheduledDates.push(date.toISOString().split('T')[0] + '_morning');
-                            scheduledDates.push(date.toISOString().split('T')[0] + '_night');
-                        } else if (frequency === '48h') {
-                            if (i % 2 === 0) {
-                                scheduledDates.push(date.toISOString().split('T')[0]);
-                            }
-                        } else if (frequency === 'weekly') {
-                            if (i % 7 === 0) {
-                                scheduledDates.push(date.toISOString().split('T')[0]);
-                            }
-                        }
+                        this.addDateBasedOnFrequency(date, frequency, scheduledDates, customHours);
                     }
                 } else {
                     // Para medicamentos com duração definida
@@ -1421,27 +2009,38 @@
                     let dayCount = 0;
                     
                     while (currentDate <= endDate && dayCount < 365) {
-                        if (frequency === 'daily') {
-                            scheduledDates.push(currentDate.toISOString().split('T')[0]);
-                        } else if (frequency === '12h') {
-                            scheduledDates.push(currentDate.toISOString().split('T')[0] + '_morning');
-                            scheduledDates.push(currentDate.toISOString().split('T')[0] + '_night');
-                        } else if (frequency === '48h') {
-                            if (dayCount % 2 === 0) {
-                                scheduledDates.push(currentDate.toISOString().split('T')[0]);
-                            }
-                        } else if (frequency === 'weekly') {
-                            if (dayCount % 7 === 0) {
-                                scheduledDates.push(currentDate.toISOString().split('T')[0]);
-                            }
-                        }
-                        
+                        this.addDateBasedOnFrequency(currentDate, frequency, scheduledDates, customHours);
                         currentDate.setDate(currentDate.getDate() + 1);
                         dayCount++;
                     }
                 }
                 
                 return scheduledDates;
+            }
+            
+            addDateBasedOnFrequency(date, frequency, scheduledDates, customHours = 24) {
+                const dateStr = date.toISOString().split('T')[0];
+                
+                if (frequency === 'daily') {
+                    scheduledDates.push(dateStr);
+                } else if (frequency === '12h') {
+                    scheduledDates.push(dateStr + '_morning');
+                    scheduledDates.push(dateStr + '_night');
+                } else if (frequency === '48h') {
+                    const daysSinceStart = Math.floor((date - new Date()) / (1000 * 60 * 60 * 24));
+                    if (daysSinceStart % 2 === 0) {
+                        scheduledDates.push(dateStr);
+                    }
+                } else if (frequency === 'weekly') {
+                    if (date.getDay() === 0) { // Domingo
+                        scheduledDates.push(dateStr);
+                    }
+                } else if (frequency === 'custom') {
+                    const hoursSinceStart = Math.floor((date - new Date()) / (1000 * 60 * 60));
+                    if (hoursSinceStart % customHours === 0) {
+                        scheduledDates.push(dateStr);
+                    }
+                }
             }
             
             async updateTime() {
@@ -1470,24 +2069,39 @@
             updateUpcomingMedications() {
                 const container = document.getElementById('upcoming-medications-list');
                 const countElement = document.getElementById('next-medication-count');
+                const overdueContainer = document.getElementById('overdue-medication-count');
+                const overdueCountElement = document.getElementById('overdue-count');
                 
                 const upcoming = this.getUpcomingMedications();
+                const overdueCount = upcoming.filter(m => m.isOverdue).length;
+                
                 container.innerHTML = '';
                 
                 if (upcoming.length === 0) {
                     container.innerHTML = '<p class="text-center" style="width: 100%;">Nenhuma medicação próxima no momento.</p>';
                     countElement.textContent = 'Próximas: 0';
+                    overdueContainer.style.display = 'none';
                     return;
                 }
                 
-                countElement.textContent = `Próximas: ${upcoming.length}`;
+                countElement.textContent = `Próximas: ${upcoming.length - overdueCount}`;
+                overdueCountElement.textContent = overdueCount;
+                
+                if (overdueCount > 0) {
+                    overdueContainer.style.display = 'flex';
+                } else {
+                    overdueContainer.style.display = 'none';
+                }
                 
                 upcoming.forEach(med => {
                     const item = document.createElement('div');
-                    item.className = `upcoming-item ${med.urgent ? 'urgent' : ''}`;
+                    item.className = `upcoming-item ${med.urgent ? 'urgent' : ''} ${med.isOverdue ? 'overdue' : ''}`;
                     
-                    const timeLeft = this.calculateTimeLeft(med.nextTime);
-                    const progress = this.calculateProgress(med.nextTime);
+                    const timeLeft = med.isOverdue ? 
+                        `Atrasada: ${med.timeLeft}` : 
+                        `Faltam: ${med.timeLeft}`;
+                    
+                    const progress = med.isOverdue ? 100 : this.calculateProgress(med.nextTime);
                     
                     item.innerHTML = `
                         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
@@ -1498,21 +2112,31 @@
                                     <p style="margin: 0; font-size: 0.9rem;">${med.animalName} - ${med.dosage}</p>
                                 </div>
                             </div>
-                            <div style="font-size: 1.2rem; color: ${med.urgent ? 'var(--danger)' : 'var(--primary)'}">
+                            <div style="font-size: 1.2rem; color: ${med.isOverdue ? 'var(--warning)' : (med.urgent ? 'var(--danger)' : 'var(--primary)')}">
                                 ${med.timeOfDay === 'morning' ? '☀️' : '🌙'}
                             </div>
                         </div>
                         
-                        <div class="countdown-timer">${timeLeft}</div>
+                        <div class="countdown-timer ${med.isOverdue ? 'overdue-timer' : ''}">${timeLeft}</div>
+                        
+                        <div style="font-size: 0.85rem; margin-bottom: 5px;">
+                            Próxima: ${med.nextDateTime}
+                        </div>
                         
                         <div class="progress-bar-container">
                             <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 5px;">
-                                <span>${med.nextTime}</span>
+                                <span>${med.isOverdue ? 'Atrasado' : 'Progresso'}</span>
                                 <span>${progress}%</span>
                             </div>
                             <div class="progress-bar">
-                                <div class="progress-fill" style="width: ${progress}%;"></div>
+                                <div class="progress-fill" style="width: ${progress}%; background: ${med.isOverdue ? 'linear-gradient(90deg, var(--warning), var(--danger))' : 'linear-gradient(90deg, var(--secondary), var(--info))'}"></div>
                             </div>
+                        </div>
+                        
+                        <div style="margin-top: 10px; display: flex; gap: 5px;">
+                            <button class="btn btn-mark btn-small" style="flex: 1;" onclick="vetSystem.markMedicationFromUpcoming('${med.animalId}', '${med.medicationId}', '${med.timeOfDay}')">
+                                <i class="fas fa-check"></i> Marcar como Administrado
+                            </button>
                         </div>
                     `;
                     
@@ -1524,62 +2148,97 @@
                 const upcoming = [];
                 const now = new Date();
                 const currentTime = now.getHours() * 60 + now.getMinutes();
+                const today = this.getCurrentDate();
                 
                 // Horários de medicação
-                const morningStart = 7 * 60 + 30; // 07:30
-                const morningEnd = 8 * 60; // 08:00
-                const nightStart = 19 * 60 + 30; // 19:30
-                const nightEnd = 21 * 60; // 21:00
+                const morningTime = 7 * 60 + 30; // 07:30
+                const nightTime = 19 * 60 + 30; // 19:30
                 
-                Object.values(this.animals).forEach(animal => {
-                    Object.values(animal.medications).forEach(med => {
-                        const today = this.getCurrentDate();
-                        const todayRecords = med.history.filter(record => 
-                            record.date.startsWith(today)
-                        );
-                        
-                        // Verifica medicação da manhã
-                        if (med.schedule === 'morning' || med.schedule === 'both') {
-                            const morningDone = todayRecords.some(r => r.timeOfDay === 'morning');
-                            if (!morningDone) {
-                                const timeToMorning = morningStart - currentTime;
-                                if (timeToMorning > 0 && timeToMorning <= 120) { // Próximas 2 horas
+                // Verifica medicações para hoje e amanhã
+                for (let dayOffset = 0; dayOffset < 2; dayOffset++) {
+                    const date = new Date();
+                    date.setDate(date.getDate() + dayOffset);
+                    const dateStr = this.formatDate(date);
+                    
+                    Object.entries(this.animals).forEach(([animalId, animal]) => {
+                        Object.entries(animal.medications).forEach(([medId, med]) => {
+                            // Verifica se a medicação está agendada para hoje/amanhã
+                            const isScheduled = med.scheduledDates.some(scheduledDate => {
+                                if (scheduledDate.includes('_')) {
+                                    return scheduledDate.startsWith(dateStr);
+                                }
+                                return scheduledDate === dateStr;
+                            });
+                            
+                            if (!isScheduled) return;
+                            
+                            // Para cada horário (manhã e noite, se aplicável)
+                            const times = [];
+                            if (med.schedule === 'morning' || med.schedule === 'both') {
+                                times.push({ timeOfDay: 'morning', targetTime: morningTime });
+                            }
+                            if (med.schedule === 'night' || med.schedule === 'both') {
+                                times.push({ timeOfDay: 'night', targetTime: nightTime });
+                            }
+                            
+                            times.forEach(({ timeOfDay, targetTime }) => {
+                                // Verifica se já foi administrada
+                                const recordKey = med.schedule === 'both' ? `${dateStr}_${timeOfDay}` : dateStr;
+                                const historyRecord = med.history.find(record => record.date === recordKey);
+                                
+                                if (historyRecord) return; // Já administrada
+                                
+                                // Calcula o tempo até a medicação
+                                const targetDateTime = new Date(date);
+                                targetDateTime.setHours(Math.floor(targetTime / 60), targetTime % 60, 0, 0);
+                                
+                                let timeUntil = targetDateTime - now;
+                                let isOverdue = false;
+                                
+                                if (timeUntil < 0) {
+                                    // Já passou do horário -> atrasada
+                                    isOverdue = true;
+                                    timeUntil = Math.abs(timeUntil);
+                                }
+                                
+                                // Converte para horas e minutos
+                                const hoursUntil = Math.floor(timeUntil / (1000 * 60 * 60));
+                                const minutesUntil = Math.floor((timeUntil % (1000 * 60 * 60)) / (1000 * 60));
+                                
+                                // Só mostra se for hoje (atrasada ou dentro de 2 horas) ou amanhã (dentro de 24 horas)
+                                const shouldShow = (dayOffset === 0 && (isOverdue || hoursUntil < 2)) || 
+                                                 (dayOffset === 1 && hoursUntil < 24);
+                                
+                                if (shouldShow) {
+                                    const timeLeft = isOverdue ? 
+                                        `${hoursUntil}h ${minutesUntil}m atrasado` : 
+                                        `${hoursUntil}h ${minutesUntil}m`;
+                                    
                                     upcoming.push({
+                                        animalId: animalId,
                                         animalName: animal.name,
                                         animalIcon: animal.icon,
+                                        medicationId: medId,
                                         medicationName: med.name,
                                         dosage: med.dosage,
-                                        timeOfDay: 'morning',
-                                        nextTime: '07:30',
-                                        urgent: timeToMorning <= 30 // Urgente se faltar menos de 30 minutos
+                                        timeOfDay: timeOfDay,
+                                        date: dateStr,
+                                        nextTime: `${Math.floor(targetTime / 60)}:${(targetTime % 60).toString().padStart(2, '0')}`,
+                                        nextDateTime: `${dateStr} ${Math.floor(targetTime / 60)}:${(targetTime % 60).toString().padStart(2, '0')}`,
+                                        isOverdue: isOverdue,
+                                        urgent: !isOverdue && hoursUntil === 0 && minutesUntil < 30,
+                                        timeLeft: timeLeft
                                     });
                                 }
-                            }
-                        }
-                        
-                        // Verifica medicação da noite
-                        if (med.schedule === 'night' || med.schedule === 'both') {
-                            const nightDone = todayRecords.some(r => r.timeOfDay === 'night');
-                            if (!nightDone) {
-                                const timeToNight = nightStart - currentTime;
-                                if (timeToNight > 0 && timeToNight <= 120) { // Próximas 2 horas
-                                    upcoming.push({
-                                        animalName: animal.name,
-                                        animalIcon: animal.icon,
-                                        medicationName: med.name,
-                                        dosage: med.dosage,
-                                        timeOfDay: 'night',
-                                        nextTime: '19:30',
-                                        urgent: timeToNight <= 30 // Urgente se faltar menos de 30 minutos
-                                    });
-                                }
-                            }
-                        }
+                            });
+                        });
                     });
-                });
+                }
                 
-                // Ordena por urgência e tempo
+                // Ordena: primeiro as atrasadas, depois as urgentes, depois as normais
                 upcoming.sort((a, b) => {
+                    if (a.isOverdue && !b.isOverdue) return -1;
+                    if (!a.isOverdue && b.isOverdue) return 1;
                     if (a.urgent && !b.urgent) return -1;
                     if (!a.urgent && b.urgent) return 1;
                     return 0;
@@ -1588,7 +2247,7 @@
                 return upcoming.slice(0, 6); // Limita a 6
             }
             
-            calculateTimeLeft(nextTime) {
+            calculateProgress(nextTime) {
                 const now = new Date();
                 const [hours, minutes] = nextTime.split(':').map(Number);
                 const targetTime = new Date(now);
@@ -1598,30 +2257,20 @@
                     targetTime.setDate(targetTime.getDate() + 1);
                 }
                 
-                const diff = targetTime - now;
-                const hoursLeft = Math.floor(diff / (1000 * 60 * 60));
-                const minutesLeft = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const twoHoursBefore = new Date(targetTime);
+                twoHoursBefore.setHours(targetTime.getHours() - 2);
                 
-                return `${hoursLeft}h ${minutesLeft}m`;
+                if (now < twoHoursBefore) return 0;
+                if (now > targetTime) return 100;
+                
+                const totalWindow = targetTime - twoHoursBefore;
+                const elapsed = now - twoHoursBefore;
+                return Math.min(100, Math.max(0, (elapsed / totalWindow) * 100));
             }
             
-            calculateProgress(nextTime) {
-                const now = new Date();
-                const [targetHours, targetMinutes] = nextTime.split(':').map(Number);
-                
-                // Calcula progresso baseado em quanto falta para o horário
-                const totalDayMinutes = 24 * 60;
-                const currentMinutes = now.getHours() * 60 + now.getMinutes();
-                const targetMinutesOfDay = targetHours * 60 + targetMinutes;
-                
-                let minutesUntilTarget = targetMinutesOfDay - currentMinutes;
-                if (minutesUntilTarget < 0) {
-                    minutesUntilTarget += totalDayMinutes;
-                }
-                
-                // Progresso de 0% a 100% nas 2 horas antes do horário
-                const progress = Math.max(0, Math.min(100, 100 - (minutesUntilTarget / 120) * 100));
-                return Math.round(progress);
+            markMedicationFromUpcoming(animalId, medicationId, timeOfDay) {
+                const today = this.getCurrentDate();
+                this.toggleMedication(animalId, medicationId, timeOfDay);
             }
             
             startTimers() {
@@ -1636,11 +2285,30 @@
                 this.renderCalendar();
                 this.populateAnimalSelect();
                 this.populateExportAnimalSelect();
+                this.renderAnimalsManagementList();
             }
             
             renderAnimalCards() {
                 const container = document.getElementById('animal-cards-container');
                 container.innerHTML = '';
+                
+                if (Object.keys(this.animals).length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 40px; background: var(--card-color); border-radius: 15px; border: 2px dashed var(--border-color);">
+                            <h3 style="margin-bottom: 20px;">Nenhum animal cadastrado</h3>
+                            <p style="margin-bottom: 20px;">Você pode adicionar animais manualmente ou carregar os dados dos seus gatos.</p>
+                            <div class="controls">
+                                <button class="btn btn-add" onclick="openTab(null, 'tab-animals')">
+                                    <i class="fas fa-plus"></i> Adicionar Animal
+                                </button>
+                                <button class="btn btn-edit" onclick="vetSystem.loadDefaultData()">
+                                    <i class="fas fa-cat"></i> Carregar Dados dos Gatos
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
                 
                 Object.values(this.animals).forEach(animal => {
                     const card = document.createElement('div');
@@ -1650,15 +2318,17 @@
                     Object.values(animal.medications).forEach(med => {
                         const status = this.getMedicationStatus(animal.id, med.id);
                         const statusText = this.getStatusText(animal.id, med.id);
+                        const isOverdue = this.isMedicationOverdue(animal.id, med.id);
                         
                         medicationsHTML += `
-                            <div class="medication-item">
+                            <div class="medication-item ${isOverdue ? 'medication-overdue' : ''}">
                                 <div class="medication-info">
                                     <h4>${med.name}</h4>
                                     <div class="medication-details">${med.dosage} - ${this.getFrequencyText(med.frequency)}</div>
+                                    ${isOverdue ? '<div class="medication-details" style="color: var(--warning);"><i class="fas fa-exclamation-triangle"></i> Atrasado</div>' : ''}
                                 </div>
                                 <div class="medication-actions">
-                                    <div class="medication-status ${status}">${statusText}</div>
+                                    <div class="medication-status ${status} ${isOverdue ? 'status-overdue' : ''}">${statusText}</div>
                                     ${med.schedule === 'both' ? `
                                         <button class="btn btn-mark btn-small" onclick="vetSystem.toggleMedication('${animal.id}', '${med.id}', 'morning')">
                                             <i class="fas fa-sun"></i>
@@ -1674,8 +2344,8 @@
                                     <button class="btn btn-unmark btn-small" onclick="vetSystem.unmarkMedication('${animal.id}', '${med.id}')">
                                         <i class="fas fa-undo"></i>
                                     </button>
-                                    <button class="btn btn-pdf btn-small" onclick="vetSystem.exportMedicationPDF('${animal.id}', '${med.id}')">
-                                        <i class="fas fa-file-pdf"></i>
+                                    <button class="btn btn-edit btn-small" onclick="vetSystem.editMedication('${animal.id}', '${med.id}')">
+                                        <i class="fas fa-edit"></i>
                                     </button>
                                 </div>
                             </div>
@@ -1699,22 +2369,58 @@
                             </div>
                         </div>
                         <div class="medication-list">
-                            ${medicationsHTML}
+                            ${medicationsHTML || '<p style="text-align: center; color: var(--text-color); opacity: 0.7;">Nenhum medicamento cadastrado</p>'}
                         </div>
                         <div class="controls">
+                            <button class="btn btn-add btn-small" onclick="vetSystem.openAddMedicationModal('${animal.id}')">
+                                <i class="fas fa-plus"></i> Adicionar Medicamento
+                            </button>
                             <button class="btn btn-mark" onclick="vetSystem.markAll('${animal.id}', 'morning')">
                                 <i class="fas fa-sun"></i> Marcar Manhã
                             </button>
                             <button class="btn btn-mark" onclick="vetSystem.markAll('${animal.id}', 'night')">
                                 <i class="fas fa-moon"></i> Marcar Noite
                             </button>
-                            <button class="btn btn-unmark" onclick="vetSystem.unmarkAll('${animal.id}')">
-                                <i class="fas fa-redo"></i> Desmarcar Todas
-                            </button>
                         </div>
                     `;
                     
                     container.appendChild(card);
+                });
+            }
+            
+            openAddMedicationModal(animalId) {
+                document.getElementById('med-animal-select').value = animalId;
+                openTab(null, 'tab-medications');
+                document.getElementById('new-med-name').focus();
+            }
+            
+            renderAnimalsManagementList() {
+                const container = document.getElementById('animals-management-list');
+                container.innerHTML = '';
+                
+                Object.values(this.animals).forEach(animal => {
+                    const item = document.createElement('div');
+                    item.className = 'animal-manage-item';
+                    
+                    item.innerHTML = `
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="font-size: 1.5rem;">${animal.icon}</div>
+                            <div>
+                                <div>${animal.name}</div>
+                                <div style="font-size: 0.85rem; color: var(--text-color); opacity: 0.7;">${animal.weight} • ${Object.keys(animal.medications).length} medicamentos</div>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 5px;">
+                            <button class="btn btn-edit btn-small" onclick="vetSystem.editAnimal('${animal.id}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-danger btn-small" onclick="vetSystem.deleteAnimal('${animal.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                    
+                    container.appendChild(item);
                 });
             }
             
@@ -1768,6 +2474,37 @@
                 return 'Pendente';
             }
             
+            isMedicationOverdue(animalId, medId) {
+                const animal = this.animals[animalId];
+                const med = animal.medications[medId];
+                const now = new Date();
+                const currentTime = now.getHours() * 60 + now.getMinutes();
+                const today = this.getCurrentDate();
+                
+                // Horários de medicação
+                const morningDeadline = 8 * 60; // 08:00
+                const nightDeadline = 21 * 60; // 21:00
+                
+                // Verifica se há registros para hoje
+                const todayRecords = med.history.filter(record => 
+                    record.date.startsWith(today)
+                );
+                
+                // Para medicamentos da manhã
+                if ((med.schedule === 'morning' || med.schedule === 'both') && currentTime > morningDeadline) {
+                    const morningDone = todayRecords.some(r => r.timeOfDay === 'morning');
+                    if (!morningDone) return true;
+                }
+                
+                // Para medicamentos da noite (só verifica se já passou das 21h)
+                if ((med.schedule === 'night' || med.schedule === 'both') && currentTime > nightDeadline) {
+                    const nightDone = todayRecords.some(r => r.timeOfDay === 'night');
+                    if (!nightDone) return true;
+                }
+                
+                return false;
+            }
+            
             toggleMedication(animalId, medId, timeOfDay) {
                 const animal = this.animals[animalId];
                 const med = animal.medications[medId];
@@ -1814,6 +2551,7 @@
             markAll(animalId, timeOfDay) {
                 const animal = this.animals[animalId];
                 const today = this.getCurrentDate();
+                let count = 0;
                 
                 Object.keys(animal.medications).forEach(medId => {
                     const med = animal.medications[medId];
@@ -1825,40 +2563,27 @@
                         const recordKey = med.schedule === 'both' ? 
                             `${today}_${timeOfDay}` : today;
                         
+                        // Remove registro existente se houver
                         med.history = med.history.filter(record => 
                             record.date !== recordKey
                         );
                         
+                        // Adiciona novo registro
                         med.history.push({
                             date: recordKey,
                             timeOfDay: timeOfDay,
                             administered: true,
                             timestamp: new Date().toISOString()
                         });
+                        
+                        count++;
                     }
                 });
                 
                 this.saveToCache();
                 this.renderAll();
                 this.updateUpcomingMedications();
-                showNotification(`Todas as medicações de ${timeOfDay === 'morning' ? 'manhã' : 'noite'} marcadas!`);
-            }
-            
-            unmarkAll(animalId) {
-                const animal = this.animals[animalId];
-                const today = this.getCurrentDate();
-                
-                Object.keys(animal.medications).forEach(medId => {
-                    const med = animal.medications[medId];
-                    med.history = med.history.filter(record => 
-                        !record.date.startsWith(today)
-                    );
-                });
-                
-                this.saveToCache();
-                this.renderAll();
-                this.updateUpcomingMedications();
-                showNotification(`Todas as medicações desmarcadas!`, 'info');
+                showNotification(`${count} medicação(ões) de ${timeOfDay === 'morning' ? 'manhã' : 'noite'} marcadas!`);
             }
             
             renderCalendar() {
@@ -1936,6 +2661,10 @@
             
             addMedicationsToDay(dayElement, dateStr) {
                 const dayMedications = [];
+                const now = new Date();
+                const today = this.getCurrentDate();
+                const isToday = dateStr === today;
+                const currentTime = now.getHours() * 60 + now.getMinutes();
                 
                 Object.values(this.animals).forEach(animal => {
                     Object.values(animal.medications).forEach(med => {
@@ -1952,14 +2681,29 @@
                             );
                             
                             if (med.schedule === 'both') {
+                                // Manhã
+                                let isOverdueMorning = false;
+                                if (isToday && currentTime > 8 * 60) {
+                                    const morningDone = historyRecord && historyRecord.timeOfDay === 'morning';
+                                    if (!morningDone) isOverdueMorning = true;
+                                }
+                                
                                 dayMedications.push({
                                     animal: animal.name,
                                     animalIcon: animal.icon,
                                     medication: med.name,
                                     dosage: med.dosage,
                                     timeOfDay: 'morning',
-                                    administered: historyRecord && historyRecord.timeOfDay === 'morning'
+                                    administered: historyRecord && historyRecord.timeOfDay === 'morning',
+                                    overdue: isOverdueMorning
                                 });
+                                
+                                // Noite
+                                let isOverdueNight = false;
+                                if (isToday && currentTime > 21 * 60) {
+                                    const nightDone = historyRecord && historyRecord.timeOfDay === 'night';
+                                    if (!nightDone) isOverdueNight = true;
+                                }
                                 
                                 dayMedications.push({
                                     animal: animal.name,
@@ -1967,16 +2711,26 @@
                                     medication: med.name,
                                     dosage: med.dosage,
                                     timeOfDay: 'night',
-                                    administered: historyRecord && historyRecord.timeOfDay === 'night'
+                                    administered: historyRecord && historyRecord.timeOfDay === 'night',
+                                    overdue: isOverdueNight
                                 });
                             } else {
+                                let isOverdue = false;
+                                if (isToday) {
+                                    const deadline = med.schedule === 'morning' ? 8 * 60 : 21 * 60;
+                                    if (currentTime > deadline && !historyRecord) {
+                                        isOverdue = true;
+                                    }
+                                }
+                                
                                 dayMedications.push({
                                     animal: animal.name,
                                     animalIcon: animal.icon,
                                     medication: med.name,
                                     dosage: med.dosage,
                                     timeOfDay: med.schedule,
-                                    administered: !!historyRecord
+                                    administered: !!historyRecord,
+                                    overdue: isOverdue
                                 });
                             }
                         }
@@ -2004,15 +2758,18 @@
                         if (medCount >= 4) return;
                         
                         const medElement = document.createElement('div');
-                        medElement.className = `calendar-medication medication-${med.timeOfDay}`;
+                        const className = med.overdue ? 'calendar-medication medication-overdue' : 
+                                          `calendar-medication medication-${med.timeOfDay}`;
+                        medElement.className = className;
                         
                         // Tooltip com informações detalhadas
                         const timeText = med.timeOfDay === 'morning' ? 'Manhã (07:30-08:00)' : 'Noite (19:30-21:00)';
-                        const statusText = med.administered ? '✅ Administrado' : '⏰ Pendente';
+                        const statusText = med.administered ? '✅ Administrado' : 
+                                         med.overdue ? '⚠️ Atrasado' : '⏰ Pendente';
                         medElement.setAttribute('data-tooltip', 
                             `${animalIcon} ${animalName}\n💊 ${med.medication}\n📋 ${med.dosage}\n⏰ ${timeText}\n${statusText}`);
                         
-                        const statusIcon = med.administered ? '✅' : '⏰';
+                        const statusIcon = med.administered ? '✅' : (med.overdue ? '⚠️' : '⏰');
                         medElement.textContent = `${animalIcon} ${statusIcon} ${med.medication.substring(0, 10)}`;
                         
                         dayElement.appendChild(medElement);
@@ -2075,48 +2832,70 @@
                 if (dayMedications.length === 0) {
                     modalContent.innerHTML = '<p class="text-center">Nenhuma medicação agendada para este dia.</p>';
                 } else {
+                    // Tabela para mostrar medicamentos
+                    const table = document.createElement('table');
+                    table.style.width = '100%';
+                    table.style.borderCollapse = 'collapse';
+                    table.innerHTML = `
+                        <thead>
+                            <tr style="background: var(--light);">
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid var(--border-color);">Animal</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid var(--border-color);">Medicação</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid var(--border-color);">Dosagem</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid var(--border-color);">Horário</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid var(--border-color);">Status</th>
+                                <th style="padding: 10px; text-align: left; border-bottom: 2px solid var(--border-color);">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modalDayTableBody">
+                        </tbody>
+                    `;
+                    modalContent.appendChild(table);
+                    
+                    const tbody = document.getElementById('modalDayTableBody');
+                    
                     dayMedications.forEach(med => {
-                        const medCard = document.createElement('div');
-                        medCard.className = 'medication-item';
-                        medCard.style.marginBottom = '10px';
+                        const row = document.createElement('tr');
+                        row.style.borderBottom = '1px solid var(--border-color)';
                         
                         let actionsHTML = '';
                         if (med.timeOfDay === 'both') {
+                            const morningDone = med.history.some(h => h.timeOfDay === 'morning');
+                            const nightDone = med.history.some(h => h.timeOfDay === 'night');
+                            
                             actionsHTML = `
-                                <button class="btn btn-mark btn-small" onclick="vetSystem.toggleMedicationFromModal('${dateStr}', '${med.animalId}', '${med.medicationId}', 'morning')">
+                                <button class="btn btn-mark btn-small" onclick="vetSystem.toggleMedicationFromModal('${dateStr}', '${med.animalId}', '${med.medicationId}', 'morning')" ${morningDone ? 'disabled' : ''}>
                                     <i class="fas fa-sun"></i> Manhã
                                 </button>
-                                <button class="btn btn-mark btn-small" onclick="vetSystem.toggleMedicationFromModal('${dateStr}', '${med.animalId}', '${med.medicationId}', 'night')">
+                                <button class="btn btn-mark btn-small" onclick="vetSystem.toggleMedicationFromModal('${dateStr}', '${med.animalId}', '${med.medicationId}', 'night')" ${nightDone ? 'disabled' : ''}>
                                     <i class="fas fa-moon"></i> Noite
                                 </button>
                             `;
                         } else {
                             actionsHTML = `
-                                <button class="btn btn-mark btn-small" onclick="vetSystem.toggleMedicationFromModal('${dateStr}', '${med.animalId}', '${med.medicationId}', '${med.timeOfDay}')">
+                                <button class="btn btn-mark btn-small" onclick="vetSystem.toggleMedicationFromModal('${dateStr}', '${med.animalId}', '${med.medicationId}', '${med.timeOfDay}')" ${med.administered ? 'disabled' : ''}>
                                     <i class="fas fa-check"></i> Marcar
                                 </button>
                             `;
                         }
                         
-                        medCard.innerHTML = `
-                            <div class="medication-info">
-                                <h4>${med.animalIcon} ${med.animal} - ${med.medication}</h4>
-                                <div class="medication-details">
-                                    ${med.dosage} - ${this.getFrequencyText(med.frequency)} - 
-                                    ${med.timeOfDay === 'morning' ? 'Manhã' : med.timeOfDay === 'night' ? 'Noite' : 'Manhã e Noite'}
+                        row.innerHTML = `
+                            <td style="padding: 10px;">${med.animalIcon} ${med.animal}</td>
+                            <td style="padding: 10px;">${med.medication}</td>
+                            <td style="padding: 10px;">${med.dosage}</td>
+                            <td style="padding: 10px;">${med.timeOfDay === 'morning' ? 'Manhã' : med.timeOfDay === 'night' ? 'Noite' : 'Manhã e Noite'}</td>
+                            <td style="padding: 10px;">
+                                <span class="medication-status ${med.administered ? 'status-done' : 'status-pending'}">
+                                    ${med.administered ? 'Administrado' : 'Pendente'}
+                                </span>
+                            </td>
+                            <td style="padding: 10px;">
+                                <div style="display: flex; gap: 5px;">
+                                    ${actionsHTML}
                                 </div>
-                                <div class="medication-details">
-                                    Status: ${med.administered ? '✅ Administrado' : '⏰ Pendente'}
-                                </div>
-                            </div>
-                            <div class="medication-actions">
-                                ${actionsHTML}
-                                <button class="btn btn-pdf btn-small" onclick="vetSystem.exportMedicationDayPDF('${dateStr}', '${med.animalId}', '${med.medicationId}')">
-                                    <i class="fas fa-file-pdf"></i>
-                                </button>
-                            </div>
+                            </td>
                         `;
-                        modalContent.appendChild(medCard);
+                        tbody.appendChild(row);
                     });
                 }
                 
@@ -2134,6 +2913,7 @@
                 
                 if (existingIndex > -1) {
                     med.history.splice(existingIndex, 1);
+                    showNotification(`${med.name} desmarcado!`, 'info');
                 } else {
                     med.history.push({
                         date: recordKey,
@@ -2141,6 +2921,7 @@
                         administered: true,
                         timestamp: new Date().toISOString()
                     });
+                    showNotification(`${med.name} marcado como administrado!`);
                 }
                 
                 this.saveToCache();
@@ -2200,12 +2981,20 @@
             }
             
             addNewAnimal() {
-                const name = document.getElementById('new-animal-name').value;
+                const name = document.getElementById('new-animal-name').value.trim();
                 const weight = document.getElementById('new-animal-weight').value;
                 const icon = document.getElementById('new-animal-icon').value;
                 
-                if (!name || !weight) {
-                    showNotification('Por favor, preencha todos os campos!', 'warning');
+                // Validação
+                if (!name) {
+                    showNotification('Por favor, informe o nome do animal!', 'warning');
+                    document.getElementById('new-animal-name').classList.add('input-error');
+                    return;
+                }
+                
+                if (!weight || parseFloat(weight) <= 0) {
+                    showNotification('Por favor, informe um peso válido (maior que 0)!', 'warning');
+                    document.getElementById('new-animal-weight').classList.add('input-error');
                     return;
                 }
                 
@@ -2219,7 +3008,7 @@
                 this.animals[id] = {
                     id,
                     name,
-                    weight,
+                    weight: `${parseFloat(weight).toLocaleString('pt-BR')} kg`,
                     icon,
                     medications: {}
                 };
@@ -2229,23 +3018,112 @@
                 this.populateExportAnimalSelect();
                 this.renderAll();
                 
+                // Limpa campos
                 document.getElementById('new-animal-name').value = '';
                 document.getElementById('new-animal-weight').value = '';
+                document.getElementById('new-animal-name').classList.remove('input-error');
+                document.getElementById('new-animal-weight').classList.remove('input-error');
                 
                 showNotification(`${name} adicionado com sucesso!`);
             }
             
+            deleteAnimal(animalId) {
+                if (confirm(`Tem certeza que deseja excluir o animal ${this.animals[animalId].name}? Todos os medicamentos também serão excluídos.`)) {
+                    delete this.animals[animalId];
+                    this.saveToCache();
+                    this.populateAnimalSelect();
+                    this.populateExportAnimalSelect();
+                    this.renderAll();
+                    showNotification('Animal excluído com sucesso!', 'info');
+                }
+            }
+            
+            editAnimal(animalId) {
+                const animal = this.animals[animalId];
+                if (!animal) return;
+                
+                const newName = prompt('Novo nome do animal:', animal.name);
+                if (newName && newName.trim()) {
+                    const newWeight = prompt('Novo peso (kg):', animal.weight.replace(' kg', ''));
+                    
+                    if (newWeight && parseFloat(newWeight) > 0) {
+                        // Atualiza o ID se o nome mudou
+                        const newId = newName.toLowerCase().replace(/[^a-z0-9]/g, '');
+                        
+                        if (newId !== animalId && this.animals[newId]) {
+                            showNotification('Já existe um animal com este nome!', 'warning');
+                            return;
+                        }
+                        
+                        // Remove o animal antigo e adiciona com novo ID
+                        delete this.animals[animalId];
+                        
+                        this.animals[newId] = {
+                            id: newId,
+                            name: newName.trim(),
+                            weight: `${parseFloat(newWeight).toLocaleString('pt-BR')} kg`,
+                            icon: animal.icon,
+                            medications: animal.medications
+                        };
+                        
+                        this.saveToCache();
+                        this.populateAnimalSelect();
+                        this.populateExportAnimalSelect();
+                        this.renderAll();
+                        showNotification('Animal atualizado com sucesso!');
+                    }
+                }
+            }
+            
+            editMedication(animalId, medicationId) {
+                const animal = this.animals[animalId];
+                const med = animal.medications[medicationId];
+                if (!animal || !med) return;
+                
+                const newName = prompt('Novo nome do medicamento:', med.name);
+                if (newName && newName.trim()) {
+                    const newDosage = prompt('Nova dosagem:', med.dosage);
+                    
+                    if (newDosage && newDosage.trim()) {
+                        med.name = newName.trim();
+                        med.dosage = newDosage.trim();
+                        
+                        this.saveToCache();
+                        this.renderAll();
+                        showNotification('Medicamento atualizado com sucesso!');
+                    }
+                }
+            }
+            
             addNewMedication() {
                 const animalId = document.getElementById('med-animal-select').value;
-                const name = document.getElementById('new-med-name').value;
-                const dosage = document.getElementById('new-med-dosage').value;
+                const name = document.getElementById('new-med-name').value.trim();
+                const dosage = document.getElementById('new-med-dosage').value.trim();
                 const frequency = document.getElementById('new-med-frequency').value;
-                const schedule = document.getElementById('new-med-time').value;
+                const schedule = document.getElementById('new-med-schedule').value;
                 const startDate = document.getElementById('new-med-start-date').value;
                 const durationType = document.getElementById('new-med-duration-type').value;
                 
-                if (!animalId || !name || !dosage || !startDate) {
-                    showNotification('Por favor, preencha todos os campos obrigatórios!', 'warning');
+                // Validação
+                if (!animalId) {
+                    showNotification('Por favor, selecione um animal!', 'warning');
+                    return;
+                }
+                
+                if (!name) {
+                    showNotification('Por favor, informe o nome do medicamento!', 'warning');
+                    document.getElementById('new-med-name').classList.add('input-error');
+                    return;
+                }
+                
+                if (!dosage) {
+                    showNotification('Por favor, informe a dosagem!', 'warning');
+                    document.getElementById('new-med-dosage').classList.add('input-error');
+                    return;
+                }
+                
+                if (!startDate) {
+                    showNotification('Por favor, informe a data de início!', 'warning');
                     return;
                 }
                 
@@ -2257,16 +3135,33 @@
                 
                 let duration = null;
                 let endDate = null;
+                let customHours = 24;
+                
+                if (frequency === 'custom') {
+                    customHours = parseInt(document.getElementById('custom-frequency-value').value) || 24;
+                    if (customHours < 1 || customHours > 720) {
+                        showNotification('Intervalo personalizado deve estar entre 1 e 720 horas!', 'warning');
+                        return;
+                    }
+                }
                 
                 if (durationType === 'days') {
                     duration = parseInt(document.getElementById('new-med-duration-days').value) || 7;
+                    if (duration < 1 || duration > 365) {
+                        showNotification('Duração deve estar entre 1 e 365 dias!', 'warning');
+                        return;
+                    }
                 } else if (durationType === 'end_date') {
                     endDate = document.getElementById('new-med-end-date').value;
+                    if (!endDate) {
+                        showNotification('Por favor, informe a data de término!', 'warning');
+                        return;
+                    }
                 }
                 
                 const medId = name.toLowerCase().replace(/[^a-z0-9]/g, '') + '_' + Date.now().toString().slice(-6);
                 
-                const scheduledDates = this.generateScheduledDates(frequency, startDate, duration || endDate, durationType);
+                const scheduledDates = this.generateScheduledDates(frequency, startDate, duration || endDate, durationType, customHours);
                 
                 animal.medications[medId] = {
                     id: medId,
@@ -2278,19 +3173,112 @@
                     duration: durationType === 'days' ? duration : null,
                     durationType,
                     endDate: durationType === 'end_date' ? endDate : null,
+                    customHours: frequency === 'custom' ? customHours : null,
                     history: [],
                     scheduledDates
                 };
                 
                 this.saveToCache();
                 
+                // Limpa campos
                 document.getElementById('new-med-name').value = '';
                 document.getElementById('new-med-dosage').value = '';
-                document.getElementById('new-med-start-date').value = '';
+                document.getElementById('new-med-name').classList.remove('input-error');
+                document.getElementById('new-med-dosage').classList.remove('input-error');
                 
                 showNotification(`${name} adicionado para ${animal.name}!`);
                 
                 this.renderAll();
+            }
+            
+            addPreloadedMedication(animalId, name, dosage, frequency, schedule, duration) {
+                if (!this.animals[animalId]) {
+                    showNotification('Animal não encontrado!', 'warning');
+                    return;
+                }
+                
+                const medId = name.toLowerCase().replace(/[^a-z0-9]/g, '') + '_' + Date.now().toString().slice(-6);
+                const startDate = this.getCurrentDate();
+                const durationType = duration ? 'days' : 'continuous';
+                
+                const scheduledDates = this.generateScheduledDates(frequency, startDate, duration, durationType);
+                
+                this.animals[animalId].medications[medId] = {
+                    id: medId,
+                    name,
+                    dosage,
+                    frequency,
+                    schedule,
+                    startDate,
+                    duration: duration,
+                    durationType: durationType,
+                    history: [],
+                    scheduledDates
+                };
+                
+                this.saveToCache();
+                this.renderAll();
+                showNotification(`${name} adicionado para ${this.animals[animalId].name}!`);
+            }
+            
+            addAllPreloadedMedications() {
+                let count = 0;
+                
+                Object.entries(this.preloadedMedications).forEach(([animalId, meds]) => {
+                    if (this.animals[animalId]) {
+                        meds.forEach(med => {
+                            const medId = med.name.toLowerCase().replace(/[^a-z0-9]/g, '') + '_' + Date.now().toString().slice(-6);
+                            
+                            this.animals[animalId].medications[medId] = {
+                                id: medId,
+                                name: med.name,
+                                dosage: med.dosage,
+                                frequency: med.frequency,
+                                schedule: med.schedule,
+                                startDate: med.startDate,
+                                duration: med.duration,
+                                durationType: med.durationType,
+                                history: [],
+                                scheduledDates: this.generateScheduledDates(med.frequency, med.startDate, med.duration, med.durationType)
+                            };
+                            
+                            count++;
+                        });
+                    }
+                });
+                
+                this.saveToCache();
+                this.renderAll();
+                showNotification(`${count} medicamentos exemplo carregados com sucesso!`);
+            }
+            
+            loadFromCache() {
+                try {
+                    const cachedData = localStorage.getItem(this.cacheManager.appCacheKey);
+                    
+                    if (cachedData) {
+                        const data = JSON.parse(cachedData);
+                        this.animals = data.animals || {};
+                        this.calendarMonth = data.calendarMonth || new Date().getMonth();
+                        this.calendarYear = data.calendarYear || new Date().getFullYear();
+                    }
+                } catch (e) {
+                    console.error('Erro ao carregar do cache:', e);
+                }
+            }
+            
+            saveMedicationsToCache() {
+                const medicationsToCache = {};
+                
+                Object.entries(this.animals).forEach(([animalId, animal]) => {
+                    medicationsToCache[animalId] = animal.medications;
+                });
+                
+                if (this.cacheManager.saveMedicationsToCache(medicationsToCache)) {
+                    showNotification('Medicamentos salvos em cache com sucesso!');
+                } else {
+                    showNotification('Erro ao salvar medicamentos em cache!', 'danger');
+                }
             }
             
             saveToCache() {
@@ -2310,21 +3298,6 @@
                 }
             }
             
-            loadFromCache() {
-                try {
-                    const cachedData = localStorage.getItem(this.cacheManager.appCacheKey);
-                    
-                    if (cachedData) {
-                        const data = JSON.parse(cachedData);
-                        this.animals = data.animals || this.animals;
-                        this.calendarMonth = data.calendarMonth || new Date().getMonth();
-                        this.calendarYear = data.calendarYear || new Date().getFullYear();
-                    }
-                } catch (e) {
-                    console.error('Erro ao carregar do cache:', e);
-                }
-            }
-            
             updateCacheDisplay() {
                 this.cacheManager.updateCacheDisplay();
             }
@@ -2340,46 +3313,66 @@
                 doc.setFontSize(18);
                 doc.text(title, 14, 20);
                 
-                let y = 35;
-                const pageHeight = doc.internal.pageSize.height;
+                // Cria tabela
+                const tableData = [];
+                const dateForQuery = dateStr || this.selectedDay;
                 
                 Object.values(this.animals).forEach(animal => {
                     Object.values(animal.medications).forEach(med => {
                         const isScheduled = med.scheduledDates.some(scheduledDate => {
                             if (scheduledDate.includes('_')) {
-                                return scheduledDate.startsWith(dateStr || this.selectedDay);
+                                return scheduledDate.startsWith(dateForQuery);
                             }
-                            return scheduledDate === (dateStr || this.selectedDay);
+                            return scheduledDate === dateForQuery;
                         });
                         
                         if (isScheduled) {
                             const historyRecord = med.history.find(record => 
-                                record.date.startsWith(dateStr || this.selectedDay)
+                                record.date.startsWith(dateForQuery)
                             );
                             
-                            doc.setFontSize(12);
-                            doc.text(`${animal.name} - ${med.name}`, 14, y);
-                            y += 8;
-                            
-                            doc.setFontSize(10);
-                            doc.text(`Dosagem: ${med.dosage}`, 14, y);
-                            y += 5;
-                            doc.text(`Frequência: ${this.getFrequencyText(med.frequency)}`, 14, y);
-                            y += 5;
-                            doc.text(`Horário: ${med.schedule === 'morning' ? 'Manhã' : med.schedule === 'night' ? 'Noite' : 'Manhã e Noite'}`, 14, y);
-                            y += 5;
-                            doc.text(`Status: ${historyRecord ? 'Administrado' : 'Pendente'}`, 14, y);
-                            y += 10;
-                            
-                            if (y > pageHeight - 20) {
-                                doc.addPage();
-                                y = 20;
+                            let scheduleText = '';
+                            if (med.schedule === 'both') {
+                                const morningDone = historyRecord && historyRecord.timeOfDay === 'morning';
+                                const nightDone = historyRecord && historyRecord.timeOfDay === 'night';
+                                scheduleText = `Manhã: ${morningDone ? '✓' : '✗'}, Noite: ${nightDone ? '✓' : '✗'}`;
+                            } else {
+                                scheduleText = med.schedule === 'morning' ? 'Manhã' : 'Noite';
                             }
+                            
+                            tableData.push([
+                                animal.name,
+                                med.name,
+                                med.dosage,
+                                scheduleText,
+                                historyRecord ? 'Administrado' : 'Pendente'
+                            ]);
                         }
                     });
                 });
                 
-                const filename = `medicacoes-${dateStr || this.selectedDay}.pdf`;
+                if (tableData.length > 0) {
+                    doc.autoTable({
+                        startY: 30,
+                        head: [['Animal', 'Medicação', 'Dosagem', 'Horário', 'Status']],
+                        body: tableData,
+                        theme: 'grid',
+                        headStyles: { fillColor: [74, 144, 226] },
+                        styles: { fontSize: 9 },
+                        columnStyles: {
+                            0: { cellWidth: 30 },
+                            1: { cellWidth: 50 },
+                            2: { cellWidth: 30 },
+                            3: { cellWidth: 40 },
+                            4: { cellWidth: 30 }
+                        }
+                    });
+                } else {
+                    doc.setFontSize(12);
+                    doc.text('Nenhuma medicação agendada para este dia.', 14, 40);
+                }
+                
+                const filename = `medicacoes-${dateForQuery}.pdf`;
                 doc.save(filename);
                 showNotification(`PDF exportado: ${filename}`);
             }
@@ -2491,6 +3484,11 @@
                     const historyCount = med.history.length;
                     doc.text(`   Administrações registradas: ${historyCount}`, 14, y);
                     y += 10;
+                    
+                    if (y > 280) {
+                        doc.addPage();
+                        y = 20;
+                    }
                 });
                 
                 const filename = `registro-${animal.name}.pdf`;
@@ -2500,7 +3498,7 @@
             
             exportMonthToPDF() {
                 const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
+                const doc = new jsPDF('landscape');
                 
                 const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
                                   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
@@ -2552,7 +3550,8 @@
                     body: tableData,
                     theme: 'grid',
                     styles: { fontSize: 8 },
-                    headStyles: { fillColor: [74, 144, 226] }
+                    headStyles: { fillColor: [74, 144, 226] },
+                    margin: { left: 10, right: 10 }
                 });
                 
                 const filename = `calendario-${monthNames[this.calendarMonth]}-${this.calendarYear}.pdf`;
@@ -2756,19 +3755,6 @@
                     location.reload();
                 }
             }
-            
-            editAnimal(animalId) {
-                const animal = this.animals[animalId];
-                if (!animal) return;
-                
-                const newName = prompt('Novo nome do animal:', animal.name);
-                if (newName && newName.trim()) {
-                    animal.name = newName.trim();
-                    this.saveToCache();
-                    this.renderAll();
-                    showNotification('Animal atualizado com sucesso!');
-                }
-            }
         }
 
         // Funções globais
@@ -2797,6 +3783,18 @@
         function clearAppCache() {
             vetSystem.cacheManager.clearAppCache();
             setTimeout(() => location.reload(), 1000);
+        }
+
+        function clearMedicationsCache() {
+            vetSystem.cacheManager.clearMedicationsCache();
+        }
+
+        function saveMedicationsToCache() {
+            vetSystem.saveMedicationsToCache();
+        }
+
+        function addAllPreloadedMedications() {
+            vetSystem.addAllPreloadedMedications();
         }
 
         function closeDayModal() {
@@ -2835,6 +3833,10 @@
             vetSystem.addNewMedication();
         }
 
+        function addPreloadedMedication(animalId, name, dosage, frequency, schedule, duration) {
+            vetSystem.addPreloadedMedication(animalId, name, dosage, frequency, schedule, duration);
+        }
+
         function exportData() {
             vetSystem.exportData();
         }
@@ -2847,9 +3849,59 @@
             vetSystem.resetAllData();
         }
 
+        function toggleCustomFrequency() {
+            vetSystem.toggleCustomFrequency();
+        }
+
+        function toggleDurationFields() {
+            vetSystem.toggleDurationFields();
+        }
+
+        function openTab(evt, tabName) {
+            // Esconde todos os conteúdos das tabs
+            const tabContents = document.getElementsByClassName('tab-content');
+            for (let i = 0; i < tabContents.length; i++) {
+                tabContents[i].classList.remove('active');
+            }
+            
+            // Remove a classe active de todos os botões
+            const tabButtons = document.getElementsByClassName('tab-button');
+            for (let i = 0; i < tabButtons.length; i++) {
+                tabButtons[i].classList.remove('active');
+            }
+            
+            // Mostra a tab atual e adiciona a classe active ao botão
+            document.getElementById(tabName).classList.add('active');
+            if (evt) {
+                evt.currentTarget.classList.add('active');
+            } else {
+                // Encontra o botão correspondente à tab
+                for (let i = 0; i < tabButtons.length; i++) {
+                    if (tabButtons[i].textContent.includes(tabName.replace('tab-', ''))) {
+                        tabButtons[i].classList.add('active');
+                        break;
+                    }
+                }
+            }
+        }
+
         // Inicializa o sistema quando a página carrega
         document.addEventListener('DOMContentLoaded', function() {
             vetSystem.init();
+            
+            // Tenta carregar o arquivo JSON externo se existir
+            try {
+                fetch('src/importacao_gatos.json')
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Arquivo JSON externo carregado com sucesso');
+                    })
+                    .catch(error => {
+                        console.log('Usando dados padrão embutidos no HTML');
+                    });
+            } catch (error) {
+                console.log('Erro ao carregar JSON externo, usando dados embutidos');
+            }
         });
     </script>
 </body>
