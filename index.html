@@ -1272,9 +1272,6 @@
                 <button class="btn btn-load-cats" onclick="loadFrajolaNenemData()">
                     <i class="fas fa-cat"></i> Carregar Frajola e Neném
                 </button>
-                <button class="btn btn-edit" onclick="loadSampleData()">
-                    <i class="fas fa-vial"></i> Carregar Dados de Exemplo
-                </button>
                 <button class="btn btn-clear-data" onclick="clearAllData()">
                     <i class="fas fa-trash"></i> Limpar Todos os Dados
                 </button>
@@ -2241,7 +2238,7 @@
                         }
                     };
                     
-                    if (confirm('Não foi possível carregar o arquivo. Deseja carregar dados de exemplo do Frajola e Neném?')) {
+                    if (confirm('Deseja carregar dados de exemplo do Frajola e Neném?')) {
                         this.animals = data.animals || {};
                         this.saveToCache();
                         this.populateAnimalSelect();
