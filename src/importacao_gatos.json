@@ -332,56 +332,6 @@
       }
     }
   },
-  "medications_cache": {
-    "vetmax_plus": {
-      "name": "Vetmax Plus",
-      "common_dosage": "½ comprimido",
-      "type": "antibiótico",
-      "category": "comprimido"
-    },
-    "omegablue_esqualeno": {
-      "name": "Omegablue Esqualeno",
-      "common_dosage": "1 cápsula",
-      "type": "suplemento",
-      "category": "cápsula"
-    },
-    "petsporin_75mg": {
-      "name": "Petsporin 75 mg",
-      "common_dosage": "½ comprimido",
-      "type": "antibiótico",
-      "category": "comprimido"
-    },
-    "mellis_vet_05mg": {
-      "name": "Mellis Vet 0,5 mg",
-      "common_dosage": "1 comprimido",
-      "type": "analgésico",
-      "category": "comprimido"
-    },
-    "hemocare": {
-      "name": "Hemocare",
-      "common_dosage": "0,4 ml",
-      "type": "suplemento",
-      "category": "líquido"
-    },
-    "promun_cat_pasta": {
-      "name": "Promun Cat Pasta",
-      "common_dosage": "2 ml",
-      "type": "suplemento",
-      "category": "pasta"
-    },
-    "dipirona_gotas": {
-      "name": "Dipirona gotas",
-      "common_dosage": "3 gotas",
-      "type": "analgésico",
-      "category": "líquido"
-    },
-    "vetaglos_pomada": {
-      "name": "Vetaglós pomada",
-      "common_dosage": "Aplicação tópica",
-      "type": "pomada",
-      "category": "tópico"
-    }
-  },
   "calendarMonth": 11,
   "calendarYear": 2025,
   "lastUpdated": "2025-12-14T10:30:00.000Z",
