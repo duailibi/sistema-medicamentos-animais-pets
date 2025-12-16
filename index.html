@@ -784,23 +784,49 @@
             gap: 15px;
             margin-bottom: 20px;
             flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+        
+        .filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            flex: 1;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            min-width: 180px;
+            flex: 1;
+        }
+        
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
         }
         
         .history-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 15px;
+            font-size: 0.9rem;
         }
         
         .history-table th {
             background: var(--light);
-            padding: 10px;
+            padding: 12px 8px;
             text-align: left;
             border-bottom: 2px solid var(--border-color);
+            font-weight: bold;
+            position: sticky;
+            top: 0;
         }
         
         .history-table td {
-            padding: 10px;
+            padding: 10px 8px;
             border-bottom: 1px solid var(--border-color);
         }
         
@@ -811,6 +837,16 @@
         
         .status-late {
             color: var(--warning);
+            font-weight: bold;
+        }
+        
+        .status-administered {
+            color: var(--secondary);
+            font-weight: bold;
+        }
+        
+        .status-pending {
+            color: var(--primary);
             font-weight: bold;
         }
         
@@ -901,6 +937,25 @@
             .indicators-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
+            
+            .history-filters {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .filter-buttons {
+                justify-content: center;
+                margin-top: 10px;
+            }
+            
+            .history-table {
+                font-size: 0.8rem;
+            }
+            
+            .history-table th,
+            .history-table td {
+                padding: 8px 5px;
+            }
         }
         
         @media (max-width: 480px) {
@@ -939,6 +994,15 @@
             
             .indicators-grid {
                 grid-template-columns: 1fr;
+            }
+            
+            .history-table {
+                font-size: 0.7rem;
+            }
+            
+            .history-table th,
+            .history-table td {
+                padding: 6px 3px;
             }
         }
         
@@ -1035,6 +1099,106 @@
         .input-error {
             border-color: var(--danger) !important;
         }
+        
+        .data-load-section {
+            background: var(--card-color);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+        
+        .data-load-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .btn-load-cats {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-clear-data {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        
+        .history-table-container {
+            max-height: 500px;
+            overflow-y: auto;
+            margin-top: 20px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .history-table-wrapper {
+            overflow-x: auto;
+        }
+        
+        .history-status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            display: inline-block;
+            min-width: 80px;
+            text-align: center;
+        }
+        
+        .badge-late {
+            background-color: rgba(245, 166, 35, 0.2);
+            color: var(--warning);
+            border: 1px solid rgba(245, 166, 35, 0.3);
+        }
+        
+        .badge-on-time {
+            background-color: rgba(126, 211, 33, 0.2);
+            color: var(--secondary);
+            border: 1px solid rgba(126, 211, 33, 0.3);
+        }
+        
+        .badge-administered {
+            background-color: rgba(74, 144, 226, 0.2);
+            color: var(--primary);
+            border: 1px solid rgba(74, 144, 226, 0.3);
+        }
+        
+        .badge-pending {
+            background-color: rgba(240, 240, 240, 0.5);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+        
+        .history-note {
+            font-size: 0.8rem;
+            color: var(--text-color);
+            opacity: 0.8;
+            font-style: italic;
+            margin-top: 5px;
+        }
+        
+        .history-detail-row {
+            background: var(--light);
+            border-radius: 8px;
+            padding: 8px;
+            margin-top: 5px;
+            font-size: 0.85rem;
+        }
+        
+        .detail-label {
+            font-weight: bold;
+            color: var(--primary);
+        }
+        
+        .history-actions {
+            display: flex;
+            gap: 5px;
+        }
     </style>
 </head>
 <body data-theme="light">
@@ -1066,6 +1230,9 @@
                 </div>
                 
                 <div class="header-controls">
+                    <button class="btn btn-load-cats btn-small" onclick="loadFrajolaNenemData()">
+                        <i class="fas fa-cat"></i> Carregar Frajola e Neném
+                    </button>
                     <button class="theme-toggle" id="theme-toggle" title="Alternar tema">
                         <i class="fas fa-moon"></i>
                     </button>
@@ -1097,6 +1264,26 @@
             </div>
         </header>
         
+        <!-- Seção de Carregamento de Dados -->
+        <div class="data-load-section">
+            <h2><i class="fas fa-database"></i> Carregar Dados Predefinidos</h2>
+            <p>Carregue os dados dos seus gatos para começar a usar o sistema imediatamente</p>
+            <div class="data-load-buttons">
+                <button class="btn btn-load-cats" onclick="loadFrajolaNenemData()">
+                    <i class="fas fa-cat"></i> Carregar Frajola e Neném
+                </button>
+                <button class="btn btn-edit" onclick="loadSampleData()">
+                    <i class="fas fa-vial"></i> Carregar Dados de Exemplo
+                </button>
+                <button class="btn btn-clear-data" onclick="clearAllData()">
+                    <i class="fas fa-trash"></i> Limpar Todos os Dados
+                </button>
+            </div>
+            <div class="history-note" style="margin-top: 15px;">
+                <i class="fas fa-info-circle"></i> Os dados dos seus gatos incluem todos os medicamentos e horários pré-configurados
+            </div>
+        </div>
+        
         <!-- Indicadores de Uso e Aderência -->
         <div class="indicators-section">
             <h2><i class="fas fa-chart-line"></i> Indicadores de Uso e Aderência</h2>
@@ -1127,35 +1314,51 @@
                     <button class="tab-button active" onclick="openHistoryTab(event, 'history-all')">Todos</button>
                     <button class="tab-button" onclick="openHistoryTab(event, 'history-animal')">Por Animal</button>
                     <button class="tab-button" onclick="openHistoryTab(event, 'history-medication')">Por Medicamento</button>
+                    <button class="tab-button" onclick="openHistoryTab(event, 'history-detailed')">Detalhado</button>
                 </div>
                 
                 <!-- Tab Todos -->
                 <div id="history-all" class="tab-content active">
                     <div class="history-filters">
-                        <div class="form-group">
-                            <label for="history-animal-select">Animal:</label>
-                            <select id="history-animal-select">
-                                <option value="all">Todos os animais</option>
-                                <!-- Preenchido por JavaScript -->
-                            </select>
+                        <div class="filter-row">
+                            <div class="filter-group">
+                                <label for="history-animal-select">Animal:</label>
+                                <select id="history-animal-select">
+                                    <option value="all">Todos os animais</option>
+                                    <!-- Preenchido por JavaScript -->
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label for="history-medication-select">Medicamento:</label>
+                                <select id="history-medication-select">
+                                    <option value="all">Todos os medicamentos</option>
+                                    <!-- Preenchido por JavaScript -->
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label for="history-period-select">Período:</label>
+                                <select id="history-period-select">
+                                    <option value="7">Últimos 7 dias</option>
+                                    <option value="30" selected>Últimos 30 dias</option>
+                                    <option value="90">Últimos 90 dias</option>
+                                    <option value="365">Último ano</option>
+                                    <option value="custom">Personalizado</option>
+                                </select>
+                            </div>
+                            <div class="filter-group" id="custom-date-range" style="display: none;">
+                                <div style="display: flex; gap: 10px;">
+                                    <div>
+                                        <label for="custom-start-date">Início:</label>
+                                        <input type="date" id="custom-start-date" style="width: 140px;">
+                                    </div>
+                                    <div>
+                                        <label for="custom-end-date">Fim:</label>
+                                        <input type="date" id="custom-end-date" style="width: 140px;">
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="history-medication-select">Medicamento:</label>
-                            <select id="history-medication-select">
-                                <option value="all">Todos os medicamentos</option>
-                                <!-- Preenchido por JavaScript -->
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="history-period-select">Período:</label>
-                            <select id="history-period-select">
-                                <option value="7">Últimos 7 dias</option>
-                                <option value="30" selected>Últimos 30 dias</option>
-                                <option value="90">Últimos 90 dias</option>
-                                <option value="365">Último ano</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
+                        <div class="filter-buttons">
                             <button class="btn btn-edit" onclick="updateHistoryTable()">
                                 <i class="fas fa-search"></i> Filtrar
                             </button>
@@ -1164,45 +1367,52 @@
                             </button>
                         </div>
                     </div>
-                    <div class="table-container">
-                        <table class="history-table" id="history-table">
-                            <thead>
-                                <tr>
-                                    <th>Data/Hora</th>
-                                    <th>Animal</th>
-                                    <th>Medicamento</th>
-                                    <th>Dosagem</th>
-                                    <th>Horário Previsto</th>
-                                    <th>Status</th>
-                                    <th>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody id="history-table-body">
-                                <!-- Preenchido por JavaScript -->
-                            </tbody>
-                        </table>
+                    <div class="history-table-container">
+                        <div class="history-table-wrapper">
+                            <table class="history-table" id="history-table">
+                                <thead>
+                                    <tr>
+                                        <th>Data</th>
+                                        <th>Hora</th>
+                                        <th>Animal</th>
+                                        <th>Medicamento</th>
+                                        <th>Dosagem</th>
+                                        <th>Horário Previsto</th>
+                                        <th>Horário Real</th>
+                                        <th>Status</th>
+                                        <th>Atraso</th>
+                                        <th>Detalhes</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="history-table-body">
+                                    <!-- Preenchido por JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
                 
                 <!-- Tab Por Animal -->
                 <div id="history-animal" class="tab-content">
                     <div class="history-filters">
-                        <div class="form-group">
-                            <label for="history-animal-specific-select">Animal:</label>
-                            <select id="history-animal-specific-select">
-                                <!-- Preenchido por JavaScript -->
-                            </select>
+                        <div class="filter-row">
+                            <div class="filter-group">
+                                <label for="history-animal-specific-select">Animal:</label>
+                                <select id="history-animal-specific-select">
+                                    <!-- Preenchido por JavaScript -->
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label for="history-animal-period">Período:</label>
+                                <select id="history-animal-period">
+                                    <option value="7">Últimos 7 dias</option>
+                                    <option value="30" selected>Últimos 30 dias</option>
+                                    <option value="90">Últimos 90 dias</option>
+                                    <option value="365">Último ano</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="history-animal-period">Período:</label>
-                            <select id="history-animal-period">
-                                <option value="7">Últimos 7 dias</option>
-                                <option value="30" selected>Últimos 30 dias</option>
-                                <option value="90">Últimos 90 dias</option>
-                                <option value="365">Último ano</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
+                        <div class="filter-buttons">
                             <button class="btn btn-edit" onclick="updateAnimalHistory()">
                                 <i class="fas fa-search"></i> Filtrar
                             </button>
@@ -1211,45 +1421,50 @@
                             </button>
                         </div>
                     </div>
-                    <div class="table-container">
-                        <table class="history-table" id="animal-history-table">
-                            <thead>
-                                <tr>
-                                    <th>Data/Hora</th>
-                                    <th>Medicamento</th>
-                                    <th>Dosagem</th>
-                                    <th>Horário</th>
-                                    <th>Status</th>
-                                    <th>Atraso</th>
-                                    <th>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody id="animal-history-body">
-                                <!-- Preenchido por JavaScript -->
-                            </tbody>
-                        </table>
+                    <div class="history-table-container">
+                        <div class="history-table-wrapper">
+                            <table class="history-table" id="animal-history-table">
+                                <thead>
+                                    <tr>
+                                        <th>Data</th>
+                                        <th>Hora</th>
+                                        <th>Medicamento</th>
+                                        <th>Dosagem</th>
+                                        <th>Horário</th>
+                                        <th>Status</th>
+                                        <th>Atraso</th>
+                                        <th>Detalhes</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="animal-history-body">
+                                    <!-- Preenchido por JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
                 
                 <!-- Tab Por Medicamento -->
                 <div id="history-medication" class="tab-content">
                     <div class="history-filters">
-                        <div class="form-group">
-                            <label for="history-medication-specific-select">Medicamento:</label>
-                            <select id="history-medication-specific-select">
-                                <!-- Preenchido por JavaScript -->
-                            </select>
+                        <div class="filter-row">
+                            <div class="filter-group">
+                                <label for="history-medication-specific-select">Medicamento:</label>
+                                <select id="history-medication-specific-select">
+                                    <!-- Preenchido por JavaScript -->
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label for="history-medication-period">Período:</label>
+                                <select id="history-medication-period">
+                                    <option value="7">Últimos 7 dias</option>
+                                    <option value="30" selected>Últimos 30 dias</option>
+                                    <option value="90">Últimos 90 dias</option>
+                                    <option value="365">Último ano</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="history-medication-period">Período:</label>
-                            <select id="history-medication-period">
-                                <option value="7">Últimos 7 dias</option>
-                                <option value="30" selected>Últimos 30 dias</option>
-                                <option value="90">Últimos 90 dias</option>
-                                <option value="365">Último ano</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
+                        <div class="filter-buttons">
                             <button class="btn btn-edit" onclick="updateMedicationHistory()">
                                 <i class="fas fa-search"></i> Filtrar
                             </button>
@@ -1258,23 +1473,72 @@
                             </button>
                         </div>
                     </div>
-                    <div class="table-container">
-                        <table class="history-table" id="medication-history-table">
-                            <thead>
-                                <tr>
-                                    <th>Data/Hora</th>
-                                    <th>Animal</th>
-                                    <th>Dosagem</th>
-                                    <th>Horário</th>
-                                    <th>Status</th>
-                                    <th>Atraso</th>
-                                    <th>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody id="medication-history-body">
-                                <!-- Preenchido por JavaScript -->
-                            </tbody>
-                        </table>
+                    <div class="history-table-container">
+                        <div class="history-table-wrapper">
+                            <table class="history-table" id="medication-history-table">
+                                <thead>
+                                    <tr>
+                                        <th>Data</th>
+                                        <th>Hora</th>
+                                        <th>Animal</th>
+                                        <th>Dosagem</th>
+                                        <th>Horário</th>
+                                        <th>Status</th>
+                                        <th>Atraso</th>
+                                        <th>Detalhes</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="medication-history-body">
+                                    <!-- Preenchido por JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Tab Detalhado -->
+                <div id="history-detailed" class="tab-content">
+                    <div class="history-filters">
+                        <div class="filter-row">
+                            <div class="filter-group">
+                                <label for="history-detailed-animal">Animal:</label>
+                                <select id="history-detailed-animal">
+                                    <option value="all">Todos os animais</option>
+                                    <!-- Preenchido por JavaScript -->
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label for="history-detailed-period">Período:</label>
+                                <select id="history-detailed-period">
+                                    <option value="today">Hoje</option>
+                                    <option value="yesterday">Ontem</option>
+                                    <option value="week" selected>Esta semana</option>
+                                    <option value="month">Este mês</option>
+                                    <option value="last30">Últimos 30 dias</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label for="history-detailed-status">Status:</label>
+                                <select id="history-detailed-status">
+                                    <option value="all">Todos</option>
+                                    <option value="administered">Administradas</option>
+                                    <option value="pending">Pendentes</option>
+                                    <option value="late">Atrasadas</option>
+                                    <option value="on-time">No prazo</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="filter-buttons">
+                            <button class="btn btn-edit" onclick="updateDetailedHistory()">
+                                <i class="fas fa-search"></i> Filtrar
+                            </button>
+                            <button class="btn btn-pdf" onclick="exportDetailedHistoryPDF()">
+                                <i class="fas fa-file-pdf"></i> Exportar
+                            </button>
+                        </div>
+                    </div>
+                    <div id="detailed-history-container">
+                        <!-- Preenchido por JavaScript -->
                     </div>
                 </div>
             </div>
@@ -1778,6 +2042,7 @@
                 this.updateIndicators();
                 this.updateHistoryTable();
                 this.loadMedicationsData();
+                this.setupCustomDateFilter();
                 
                 setInterval(() => this.updateTime(), 1000);
                 setInterval(() => this.cacheManager.updateCacheDisplay(), 5000);
@@ -1817,6 +2082,34 @@
                 }
             }
             
+            setupCustomDateFilter() {
+                const periodSelect = document.getElementById('history-period-select');
+                const customDateRange = document.getElementById('custom-date-range');
+                
+                if (periodSelect && customDateRange) {
+                    periodSelect.addEventListener('change', function() {
+                        if (this.value === 'custom') {
+                            customDateRange.style.display = 'block';
+                            
+                            // Define datas padrão para o intervalo personalizado
+                            const today = new Date();
+                            const oneMonthAgo = new Date();
+                            oneMonthAgo.setMonth(today.getMonth() - 1);
+                            
+                            const startDateInput = document.getElementById('custom-start-date');
+                            const endDateInput = document.getElementById('custom-end-date');
+                            
+                            if (startDateInput && endDateInput) {
+                                startDateInput.value = oneMonthAgo.toISOString().split('T')[0];
+                                endDateInput.value = today.toISOString().split('T')[0];
+                            }
+                        } else {
+                            customDateRange.style.display = 'none';
+                        }
+                    });
+                }
+            }
+            
             async loadMedicationsData() {
                 try {
                     const response = await fetch('medications.json');
@@ -1833,15 +2126,21 @@
                 }
             }
             
-            async loadDefaultCats() {
+            async loadFrajolaNenemData() {
                 try {
-                    const response = await fetch('importacao_gatos.json');
+                    const response = await fetch('frajola_e_nenem.json');
                     if (response.ok) {
                         const data = await response.json();
-                        if (confirm('Isso irá carregar os dados dos seus gatos (Frajola e Neném). Deseja continuar?')) {
+                        if (confirm('Isso irá carregar os dados dos seus gatos (Frajola e Neném) com todos os medicamentos e horários. Deseja continuar?')) {
                             this.animals = data.animals || {};
                             this.calendarMonth = data.calendarMonth || new Date().getMonth();
                             this.calendarYear = data.calendarYear || new Date().getFullYear();
+                            
+                            // Se houver cache de medicamentos, carrega
+                            if (data.medications_cache) {
+                                this.medicationsData = { medications: data.medications_cache };
+                                this.cacheManager.saveMedicationsToCache(this.medicationsData);
+                            }
                             
                             this.saveToCache();
                             this.populateAnimalSelect();
@@ -1858,7 +2157,8 @@
                     }
                 } catch (error) {
                     console.error('Erro ao carregar dados dos gatos:', error);
-                    showNotification('Erro ao carregar dados dos gatos. Usando dados padrão.', 'warning');
+                    showNotification('Erro ao carregar dados dos gatos. Verifique se o arquivo frajola_e_nenem.json está na pasta correta.', 'warning');
+                    
                     // Usa dados embutidos como fallback
                     const data = {
                         "animals": {
@@ -1870,26 +2170,70 @@
                                 "type": "cat",
                                 "icon": "🐱",
                                 "medications": {
-                                    "vetmaxplus_123456": {
-                                        "id": "vetmaxplus_123456",
+                                    "vetmax_plus": {
+                                        "id": "vetmax_plus",
                                         "name": "Vetmax Plus",
                                         "dosage": "½ comprimido",
                                         "frequency": "daily",
                                         "schedule": "morning",
-                                        "startDate": "2025-12-14",
+                                        "startDate": "2025-12-16",
                                         "duration": 3,
+                                        "durationType": "days",
+                                        "cycleDays": 15,
+                                        "history": [],
+                                        "scheduledDates": [
+                                            "2025-12-16",
+                                            "2025-12-17",
+                                            "2025-12-18",
+                                            "2026-01-02",
+                                            "2026-01-03",
+                                            "2026-01-04"
+                                        ]
+                                    },
+                                    "omegablue_esqualeno": {
+                                        "id": "omegablue_esqualeno",
+                                        "name": "Omegablue Esqualeno",
+                                        "dosage": "1 cápsula",
+                                        "frequency": "48h",
+                                        "schedule": "night",
+                                        "startDate": "2025-12-16",
+                                        "duration": null,
+                                        "durationType": "continuous",
+                                        "history": [],
+                                        "scheduledDates": [
+                                            "2025-12-16",
+                                            "2025-12-18",
+                                            "2025-12-20",
+                                            "2025-12-22",
+                                            "2025-12-24",
+                                            "2025-12-26"
+                                        ]
+                                    }
+                                }
+                            },
+                            "nenem": {
+                                "id": "nenem",
+                                "name": "Neném",
+                                "weight": "3,8 kg",
+                                "breed": "SRD",
+                                "type": "cat",
+                                "icon": "🐱",
+                                "medications": {
+                                    "petsporin_75mg": {
+                                        "id": "petsporin_75mg",
+                                        "name": "Petsporin 75 mg",
+                                        "dosage": "½ comprimido",
+                                        "frequency": "12h",
+                                        "schedule": "both",
+                                        "startDate": "2025-12-16",
+                                        "duration": 7,
                                         "durationType": "days",
                                         "history": [],
                                         "scheduledDates": [
-                                            "2025-12-14",
-                                            "2025-12-15",
-                                            "2025-12-16",
-                                            "2025-12-29",
-                                            "2025-12-30",
-                                            "2025-12-31",
-                                            "2026-01-13",
-                                            "2026-01-14",
-                                            "2026-01-15"
+                                            "2025-12-16_morning",
+                                            "2025-12-16_night",
+                                            "2025-12-17_morning",
+                                            "2025-12-17_night"
                                         ]
                                     }
                                 }
@@ -1897,7 +2241,7 @@
                         }
                     };
                     
-                    if (confirm('Deseja carregar dados de exemplo do Frajola?')) {
+                    if (confirm('Não foi possível carregar o arquivo. Deseja carregar dados de exemplo do Frajola e Neném?')) {
                         this.animals = data.animals || {};
                         this.saveToCache();
                         this.populateAnimalSelect();
@@ -1906,6 +2250,60 @@
                         this.renderAll();
                         showNotification('Dados de exemplo carregados com sucesso!');
                     }
+                }
+            }
+            
+            async loadSampleData() {
+                // Dados de exemplo para demonstração
+                const sampleData = {
+                    "animals": {
+                        "rex": {
+                            "id": "rex",
+                            "name": "Rex",
+                            "weight": "12,5 kg",
+                            "breed": "Labrador",
+                            "type": "dog",
+                            "icon": "🐶",
+                            "medications": {
+                                "antibiotico": {
+                                    "id": "antibiotico",
+                                    "name": "Antibiótico Canino",
+                                    "dosage": "1 comprimido",
+                                    "frequency": "daily",
+                                    "schedule": "morning",
+                                    "startDate": new Date().toISOString().split('T')[0],
+                                    "duration": 10,
+                                    "durationType": "days",
+                                    "history": [],
+                                    "scheduledDates": []
+                                }
+                            }
+                        }
+                    }
+                };
+                
+                if (confirm('Isso irá carregar dados de exemplo para demonstração. Deseja continuar?')) {
+                    // Adiciona os dados de exemplo aos animais existentes
+                    Object.assign(this.animals, sampleData.animals);
+                    
+                    this.saveToCache();
+                    this.populateAnimalSelect();
+                    this.populateExportAnimalSelect();
+                    this.populateHistoryFilters();
+                    this.renderAll();
+                    showNotification('Dados de exemplo carregados com sucesso!');
+                }
+            }
+            
+            clearAllData() {
+                if (confirm('ATENÇÃO: Isso irá limpar TODOS os dados do sistema, incluindo animais, medicamentos e histórico. Esta ação não pode ser desfeita. Tem certeza?')) {
+                    this.animals = {};
+                    this.saveToCache();
+                    this.populateAnimalSelect();
+                    this.populateExportAnimalSelect();
+                    this.populateHistoryFilters();
+                    this.renderAll();
+                    showNotification('Todos os dados foram limpos!', 'info');
                 }
             }
             
@@ -2048,6 +2446,10 @@
             
             formatDate(date) {
                 return date.toISOString().split('T')[0];
+            }
+            
+            formatDateTime(date) {
+                return date.toLocaleString('pt-BR');
             }
             
             generateScheduledDates(frequency, startDate, duration, durationType, customHours = 24) {
@@ -2443,26 +2845,65 @@
                 
                 const selectedAnimal = animalSelect.value;
                 const selectedMedication = medicationSelect.value;
-                const selectedPeriod = parseInt(periodSelect.value);
+                const selectedPeriod = periodSelect.value;
                 
                 // Calcula a data inicial do período
                 const today = new Date();
-                const startDate = new Date(today);
-                startDate.setDate(today.getDate() - selectedPeriod);
+                let startDate;
+                
+                if (selectedPeriod === 'custom') {
+                    const customStartDate = document.getElementById('custom-start-date').value;
+                    const customEndDate = document.getElementById('custom-end-date').value;
+                    
+                    if (!customStartDate || !customEndDate) {
+                        showNotification('Por favor, selecione as datas para o período personalizado!', 'warning');
+                        return;
+                    }
+                    
+                    startDate = new Date(customStartDate);
+                    const endDate = new Date(customEndDate);
+                    
+                    // Ajusta para incluir todo o dia final
+                    endDate.setHours(23, 59, 59, 999);
+                    
+                    // Filtra o histórico
+                    const history = this.getFilteredHistory(selectedAnimal, selectedMedication, startDate, endDate);
+                    this.renderHistoryTable(tableBody, history);
+                    return;
+                } else {
+                    const periodDays = parseInt(selectedPeriod);
+                    startDate = new Date(today);
+                    startDate.setDate(today.getDate() - periodDays);
+                }
                 
                 // Filtra o histórico
+                const history = this.getFilteredHistory(selectedAnimal, selectedMedication, startDate, today);
+                this.renderHistoryTable(tableBody, history);
+            }
+            
+            getFilteredHistory(animalFilter, medicationFilter, startDate, endDate) {
                 const history = [];
                 
                 Object.entries(this.animals).forEach(([animalId, animal]) => {
-                    if (selectedAnimal !== 'all' && animalId !== selectedAnimal) return;
+                    if (animalFilter !== 'all' && animalId !== animalFilter) return;
                     
                     Object.entries(animal.medications).forEach(([medId, med]) => {
-                        if (selectedMedication !== 'all' && medId !== selectedMedication) return;
+                        if (medicationFilter !== 'all' && medId !== medicationFilter) return;
                         
+                        // Primeiro, adiciona as medicações administradas
                         med.history.forEach(record => {
                             const recordDate = new Date(record.timestamp);
-                            if (recordDate >= startDate && recordDate <= today) {
+                            if (recordDate >= startDate && recordDate <= endDate) {
+                                // Determina o horário previsto
+                                let scheduledTime = this.getScheduledTime(record.date, record.timeOfDay || med.schedule);
+                                let delayMinutes = null;
+                                
+                                if (scheduledTime) {
+                                    delayMinutes = Math.round((recordDate - scheduledTime) / (1000 * 60));
+                                }
+                                
                                 history.push({
+                                    type: 'administered',
                                     animalName: animal.name,
                                     animalIcon: animal.icon,
                                     medicationName: med.name,
@@ -2470,16 +2911,101 @@
                                     date: record.date.split('_')[0],
                                     timeOfDay: record.timeOfDay || med.schedule,
                                     timestamp: record.timestamp,
-                                    status: record.status || 'ok'
+                                    status: record.status || 'ok',
+                                    scheduledTime: scheduledTime,
+                                    delay: delayMinutes,
+                                    administeredTime: recordDate,
+                                    notes: record.notes || ''
                                 });
+                            }
+                        });
+                        
+                        // Depois, adiciona as medicações pendentes/atrasadas
+                        const today = new Date();
+                        med.scheduledDates.forEach(scheduledDate => {
+                            let dateStr, timeOfDay;
+                            
+                            if (scheduledDate.includes('_')) {
+                                [dateStr, timeOfDay] = scheduledDate.split('_');
+                            } else {
+                                dateStr = scheduledDate;
+                                timeOfDay = med.schedule;
+                            }
+                            
+                            const scheduledDateObj = new Date(dateStr);
+                            if (scheduledDateObj >= startDate && scheduledDateObj <= endDate) {
+                                // Verifica se já foi administrada
+                                const historyRecord = med.history.find(record => 
+                                    record.date === scheduledDate
+                                );
+                                
+                                if (!historyRecord) {
+                                    // É uma medicação pendente ou atrasada
+                                    let scheduledTime = this.getScheduledTime(dateStr, timeOfDay);
+                                    let status = 'pending';
+                                    let delayMinutes = null;
+                                    
+                                    if (scheduledTime && today > scheduledTime) {
+                                        // Está atrasada
+                                        status = 'late';
+                                        delayMinutes = Math.round((today - scheduledTime) / (1000 * 60));
+                                    }
+                                    
+                                    history.push({
+                                        type: status === 'late' ? 'late' : 'pending',
+                                        animalName: animal.name,
+                                        animalIcon: animal.icon,
+                                        medicationName: med.name,
+                                        dosage: med.dosage,
+                                        date: dateStr,
+                                        timeOfDay: timeOfDay,
+                                        timestamp: null,
+                                        status: status,
+                                        scheduledTime: scheduledTime,
+                                        delay: delayMinutes,
+                                        administeredTime: null,
+                                        notes: ''
+                                    });
+                                }
                             }
                         });
                     });
                 });
                 
                 // Ordena por data/hora (mais recente primeiro)
-                history.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                history.sort((a, b) => {
+                    if (a.timestamp && b.timestamp) {
+                        return new Date(b.timestamp) - new Date(a.timestamp);
+                    } else if (a.timestamp && !b.timestamp) {
+                        return -1;
+                    } else if (!a.timestamp && b.timestamp) {
+                        return 1;
+                    } else {
+                        // Ambos sem timestamp, ordena pela data agendada
+                        const dateA = a.scheduledTime || new Date(a.date);
+                        const dateB = b.scheduledTime || new Date(b.date);
+                        return dateB - dateA;
+                    }
+                });
                 
+                return history;
+            }
+            
+            getScheduledTime(dateStr, timeOfDay) {
+                const date = new Date(dateStr);
+                
+                if (timeOfDay === 'morning') {
+                    date.setHours(7, 30, 0, 0);
+                    return date;
+                } else if (timeOfDay === 'night') {
+                    date.setHours(19, 30, 0, 0);
+                    return date;
+                }
+                
+                return null;
+            }
+            
+            renderHistoryTable(tableBody, history) {
                 // Limpa a tabela
                 tableBody.innerHTML = '';
                 
@@ -2487,36 +3013,137 @@
                 if (history.length === 0) {
                     const row = document.createElement('tr');
                     row.innerHTML = `
-                        <td colspan="7" style="text-align: center;">Nenhum registro encontrado no período selecionado.</td>
+                        <td colspan="10" style="text-align: center;">Nenhum registro encontrado no período selecionado.</td>
                     `;
                     tableBody.appendChild(row);
                 } else {
                     history.forEach(record => {
                         const row = document.createElement('tr');
                         
-                        const date = new Date(record.timestamp);
-                        const formattedDate = date.toLocaleDateString('pt-BR');
-                        const formattedTime = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                        // Formata a data e hora
+                        let formattedDate = '';
+                        let formattedTime = '';
+                        let scheduledTimeStr = '';
+                        let administeredTimeStr = '';
+                        let delayText = '';
+                        let statusBadge = '';
                         
-                        const statusClass = record.status === 'late' ? 'status-late' : 'status-ok';
-                        const statusText = record.status === 'late' ? 'Atrasado' : 'No prazo';
+                        if (record.scheduledTime) {
+                            scheduledTimeStr = record.scheduledTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                        }
+                        
+                        if (record.type === 'administered') {
+                            const date = new Date(record.timestamp);
+                            formattedDate = date.toLocaleDateString('pt-BR');
+                            formattedTime = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                            administeredTimeStr = formattedTime;
+                            
+                            if (record.delay !== null) {
+                                if (record.delay > 0) {
+                                    delayText = `+${record.delay} min`;
+                                    statusBadge = `<span class="history-status-badge badge-late">Atrasado (${delayText})</span>`;
+                                } else if (record.delay < 0) {
+                                    delayText = `${Math.abs(record.delay)} min antes`;
+                                    statusBadge = `<span class="history-status-badge badge-on-time">Antecipado (${delayText})</span>`;
+                                } else {
+                                    delayText = 'No horário';
+                                    statusBadge = `<span class="history-status-badge badge-on-time">No prazo</span>`;
+                                }
+                            }
+                        } else if (record.type === 'late') {
+                            formattedDate = new Date(record.date).toLocaleDateString('pt-BR');
+                            formattedTime = '--:--';
+                            administeredTimeStr = 'Não administrado';
+                            
+                            if (record.delay !== null) {
+                                delayText = `+${record.delay} min`;
+                                statusBadge = `<span class="history-status-badge badge-late">Atrasado (${delayText})</span>`;
+                            }
+                        } else if (record.type === 'pending') {
+                            formattedDate = new Date(record.date).toLocaleDateString('pt-BR');
+                            formattedTime = '--:--';
+                            administeredTimeStr = 'Pendente';
+                            statusBadge = `<span class="history-status-badge badge-pending">Pendente</span>`;
+                        }
+                        
+                        // Horário previsto formatado
+                        const scheduledTimeFormatted = record.timeOfDay === 'morning' ? 
+                            'Manhã (07:30)' : 
+                            record.timeOfDay === 'night' ? 
+                            'Noite (19:30)' : 
+                            scheduledTimeStr;
                         
                         row.innerHTML = `
-                            <td>${formattedDate} ${formattedTime}</td>
+                            <td>${formattedDate}</td>
+                            <td>${formattedTime}</td>
                             <td>${record.animalIcon} ${record.animalName}</td>
                             <td>${record.medicationName}</td>
                             <td>${record.dosage}</td>
-                            <td>${record.timeOfDay === 'morning' ? 'Manhã' : 'Noite'}</td>
-                            <td class="${statusClass}">${statusText}</td>
+                            <td>${scheduledTimeFormatted}</td>
+                            <td>${administeredTimeStr}</td>
+                            <td>${statusBadge}</td>
+                            <td>${delayText}</td>
                             <td>
-                                <button class="btn btn-edit btn-small" onclick="vetSystem.viewHistoryDetails('${record.animalName}', '${record.medicationName}', '${record.timestamp}')">
-                                    <i class="fas fa-eye"></i>
-                                </button>
+                                <div class="history-actions">
+                                    ${record.type === 'administered' ? `
+                                        <button class="btn btn-edit btn-small" onclick="vetSystem.viewHistoryDetails('${record.animalName}', '${record.medicationName}', '${record.timestamp}')">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    ` : `
+                                        <button class="btn btn-mark btn-small" onclick="vetSystem.markPendingMedication('${record.animalName}', '${record.medicationName}', '${record.date}', '${record.timeOfDay}')">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                    `}
+                                </div>
                             </td>
                         `;
                         
                         tableBody.appendChild(row);
                     });
+                }
+            }
+            
+            markPendingMedication(animalName, medicationName, date, timeOfDay) {
+                // Encontra o animal e medicamento
+                let targetAnimal = null;
+                let targetMedication = null;
+                
+                for (const [animalId, animal] of Object.entries(this.animals)) {
+                    if (animal.name === animalName) {
+                        targetAnimal = animal;
+                        for (const [medId, med] of Object.entries(animal.medications)) {
+                            if (med.name === medicationName) {
+                                targetMedication = med;
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                }
+                
+                if (targetAnimal && targetMedication) {
+                    const recordKey = targetMedication.schedule === 'both' ? 
+                        `${date}_${timeOfDay}` : date;
+                    
+                    // Verifica se está atrasado
+                    const now = new Date();
+                    const isOverdue = this.checkIfMedicationIsOverdue(targetMedication, timeOfDay, now);
+                    
+                    targetMedication.history.push({
+                        date: recordKey,
+                        timeOfDay: timeOfDay,
+                        administered: true,
+                        timestamp: new Date().toISOString(),
+                        status: isOverdue ? 'late' : 'ok',
+                        notes: 'Administrado manualmente do histórico'
+                    });
+                    
+                    this.saveToCache();
+                    this.renderAll();
+                    this.updateUpcomingMedications();
+                    this.updateIndicators();
+                    this.updateHistoryTable();
+                    showNotification(`${medicationName} marcado como administrado para ${animalName}!`);
                 }
             }
             
@@ -2533,13 +3160,13 @@
                 const selectedPeriod = parseInt(periodSelect.value);
                 
                 if (!selectedAnimalId) {
-                    tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Selecione um animal</td></tr>';
+                    tableBody.innerHTML = '<tr><td colspan="8" style="text-align: center;">Selecione um animal</td></tr>';
                     return;
                 }
                 
                 const animal = this.animals[selectedAnimalId];
                 if (!animal) {
-                    tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Animal não encontrado</td></tr>';
+                    tableBody.innerHTML = '<tr><td colspan="8" style="text-align: center;">Animal não encontrado</td></tr>';
                     return;
                 }
                 
@@ -2553,12 +3180,22 @@
                     med.history.forEach(record => {
                         const recordDate = new Date(record.timestamp);
                         if (recordDate >= startDate && recordDate <= today) {
+                            // Determina o horário previsto
+                            let scheduledTime = this.getScheduledTime(record.date.split('_')[0], record.timeOfDay || med.schedule);
+                            let delayMinutes = null;
+                            
+                            if (scheduledTime) {
+                                delayMinutes = Math.round((recordDate - scheduledTime) / (1000 * 60));
+                            }
+                            
                             history.push({
                                 medicationName: med.name,
                                 dosage: med.dosage,
                                 timeOfDay: record.timeOfDay || med.schedule,
                                 timestamp: record.timestamp,
-                                status: record.status || 'ok'
+                                status: record.status || 'ok',
+                                scheduledTime: scheduledTime,
+                                delay: delayMinutes
                             });
                         }
                     });
@@ -2572,7 +3209,7 @@
                 if (history.length === 0) {
                     const row = document.createElement('tr');
                     row.innerHTML = `
-                        <td colspan="7" style="text-align: center;">Nenhum registro encontrado para ${animal.name} no período selecionado.</td>
+                        <td colspan="8" style="text-align: center;">Nenhum registro encontrado para ${animal.name} no período selecionado.</td>
                     `;
                     tableBody.appendChild(row);
                 } else {
@@ -2583,16 +3220,29 @@
                         const formattedDate = date.toLocaleDateString('pt-BR');
                         const formattedTime = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
                         
-                        const statusClass = record.status === 'late' ? 'status-late' : 'status-ok';
-                        const statusText = record.status === 'late' ? 'Atrasado' : 'No prazo';
-                        const delayText = record.status === 'late' ? 'Sim' : 'Não';
+                        let statusBadge = '';
+                        let delayText = '';
+                        
+                        if (record.delay !== null) {
+                            if (record.delay > 0) {
+                                delayText = `+${record.delay} min`;
+                                statusBadge = `<span class="history-status-badge badge-late">Atrasado</span>`;
+                            } else if (record.delay < 0) {
+                                delayText = `${Math.abs(record.delay)} min antes`;
+                                statusBadge = `<span class="history-status-badge badge-on-time">Antecipado</span>`;
+                            } else {
+                                delayText = 'No horário';
+                                statusBadge = `<span class="history-status-badge badge-on-time">No prazo</span>`;
+                            }
+                        }
                         
                         row.innerHTML = `
-                            <td>${formattedDate} ${formattedTime}</td>
+                            <td>${formattedDate}</td>
+                            <td>${formattedTime}</td>
                             <td>${record.medicationName}</td>
                             <td>${record.dosage}</td>
                             <td>${record.timeOfDay === 'morning' ? 'Manhã' : 'Noite'}</td>
-                            <td class="${statusClass}">${statusText}</td>
+                            <td>${statusBadge}</td>
                             <td>${delayText}</td>
                             <td>
                                 <button class="btn btn-edit btn-small" onclick="vetSystem.viewHistoryDetails('${animal.name}', '${record.medicationName}', '${record.timestamp}')">
@@ -2619,7 +3269,7 @@
                 const selectedPeriod = parseInt(periodSelect.value);
                 
                 if (!selectedMedicationName) {
-                    tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Selecione um medicamento</td></tr>';
+                    tableBody.innerHTML = '<tr><td colspan="8" style="text-align: center;">Selecione um medicamento</td></tr>';
                     return;
                 }
                 
@@ -2635,13 +3285,23 @@
                             med.history.forEach(record => {
                                 const recordDate = new Date(record.timestamp);
                                 if (recordDate >= startDate && recordDate <= today) {
+                                    // Determina o horário previsto
+                                    let scheduledTime = this.getScheduledTime(record.date.split('_')[0], record.timeOfDay || med.schedule);
+                                    let delayMinutes = null;
+                                    
+                                    if (scheduledTime) {
+                                        delayMinutes = Math.round((recordDate - scheduledTime) / (1000 * 60));
+                                    }
+                                    
                                     history.push({
                                         animalName: animal.name,
                                         animalIcon: animal.icon,
                                         dosage: med.dosage,
                                         timeOfDay: record.timeOfDay || med.schedule,
                                         timestamp: record.timestamp,
-                                        status: record.status || 'ok'
+                                        status: record.status || 'ok',
+                                        scheduledTime: scheduledTime,
+                                        delay: delayMinutes
                                     });
                                 }
                             });
@@ -2657,7 +3317,7 @@
                 if (history.length === 0) {
                     const row = document.createElement('tr');
                     row.innerHTML = `
-                        <td colspan="7" style="text-align: center;">Nenhum registro encontrado para ${selectedMedicationName} no período selecionado.</td>
+                        <td colspan="8" style="text-align: center;">Nenhum registro encontrado para ${selectedMedicationName} no período selecionado.</td>
                     `;
                     tableBody.appendChild(row);
                 } else {
@@ -2668,16 +3328,29 @@
                         const formattedDate = date.toLocaleDateString('pt-BR');
                         const formattedTime = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
                         
-                        const statusClass = record.status === 'late' ? 'status-late' : 'status-ok';
-                        const statusText = record.status === 'late' ? 'Atrasado' : 'No prazo';
-                        const delayText = record.status === 'late' ? 'Sim' : 'Não';
+                        let statusBadge = '';
+                        let delayText = '';
+                        
+                        if (record.delay !== null) {
+                            if (record.delay > 0) {
+                                delayText = `+${record.delay} min`;
+                                statusBadge = `<span class="history-status-badge badge-late">Atrasado</span>`;
+                            } else if (record.delay < 0) {
+                                delayText = `${Math.abs(record.delay)} min antes`;
+                                statusBadge = `<span class="history-status-badge badge-on-time">Antecipado</span>`;
+                            } else {
+                                delayText = 'No horário';
+                                statusBadge = `<span class="history-status-badge badge-on-time">No prazo</span>`;
+                            }
+                        }
                         
                         row.innerHTML = `
-                            <td>${formattedDate} ${formattedTime}</td>
+                            <td>${formattedDate}</td>
+                            <td>${formattedTime}</td>
                             <td>${record.animalIcon} ${record.animalName}</td>
                             <td>${record.dosage}</td>
                             <td>${record.timeOfDay === 'morning' ? 'Manhã' : 'Noite'}</td>
-                            <td class="${statusClass}">${statusText}</td>
+                            <td>${statusBadge}</td>
                             <td>${delayText}</td>
                             <td>
                                 <button class="btn btn-edit btn-small" onclick="vetSystem.viewHistoryDetails('${record.animalName}', '${selectedMedicationName}', '${record.timestamp}')">
@@ -2691,24 +3364,230 @@
                 }
             }
             
+            updateDetailedHistory() {
+                const container = document.getElementById('detailed-history-container');
+                if (!container) return;
+                
+                const animalSelect = document.getElementById('history-detailed-animal');
+                const periodSelect = document.getElementById('history-detailed-period');
+                const statusSelect = document.getElementById('history-detailed-status');
+                
+                if (!animalSelect || !periodSelect || !statusSelect) return;
+                
+                const selectedAnimal = animalSelect.value;
+                const selectedPeriod = periodSelect.value;
+                const selectedStatus = statusSelect.value;
+                
+                // Calcula as datas com base no período
+                const today = new Date();
+                let startDate = new Date(today);
+                
+                switch(selectedPeriod) {
+                    case 'today':
+                        startDate.setHours(0, 0, 0, 0);
+                        break;
+                    case 'yesterday':
+                        startDate.setDate(today.getDate() - 1);
+                        startDate.setHours(0, 0, 0, 0);
+                        const yesterdayEnd = new Date(today);
+                        yesterdayEnd.setDate(today.getDate() - 1);
+                        yesterdayEnd.setHours(23, 59, 59, 999);
+                        today.setTime(yesterdayEnd.getTime());
+                        break;
+                    case 'week':
+                        startDate.setDate(today.getDate() - 7);
+                        break;
+                    case 'month':
+                        startDate.setMonth(today.getMonth() - 1);
+                        break;
+                    case 'last30':
+                        startDate.setDate(today.getDate() - 30);
+                        break;
+                }
+                
+                // Obtém o histórico filtrado
+                const allHistory = this.getFilteredHistory(
+                    selectedAnimal === 'all' ? 'all' : selectedAnimal,
+                    'all',
+                    startDate,
+                    today
+                );
+                
+                // Filtra por status
+                let filteredHistory = allHistory;
+                if (selectedStatus !== 'all') {
+                    filteredHistory = allHistory.filter(record => {
+                        if (selectedStatus === 'administered') {
+                            return record.type === 'administered';
+                        } else if (selectedStatus === 'pending') {
+                            return record.type === 'pending';
+                        } else if (selectedStatus === 'late') {
+                            return record.type === 'late';
+                        } else if (selectedStatus === 'on-time') {
+                            return record.type === 'administered' && record.delay <= 0;
+                        }
+                        return true;
+                    });
+                }
+                
+                // Agrupa por data
+                const groupedByDate = {};
+                filteredHistory.forEach(record => {
+                    const dateKey = record.date;
+                    if (!groupedByDate[dateKey]) {
+                        groupedByDate[dateKey] = [];
+                    }
+                    groupedByDate[dateKey].push(record);
+                });
+                
+                // Ordena as datas (mais recente primeiro)
+                const sortedDates = Object.keys(groupedByDate).sort((a, b) => {
+                    return new Date(b) - new Date(a);
+                });
+                
+                // Renderiza
+                container.innerHTML = '';
+                
+                if (sortedDates.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 40px; background: var(--light); border-radius: 10px; border: 1px solid var(--border-color);">
+                            <h3>Nenhum registro encontrado</h3>
+                            <p>Nenhum registro corresponde aos filtros selecionados.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                sortedDates.forEach(dateKey => {
+                    const date = new Date(dateKey);
+                    const formattedDate = date.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+                    
+                    const dateSection = document.createElement('div');
+                    dateSection.className = 'history-detail-row';
+                    dateSection.style.marginBottom = '20px';
+                    
+                    let dateHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 2px solid var(--border-color);">
+                            <h3 style="margin: 0;">${formattedDate}</h3>
+                            <span style="font-size: 0.9rem; color: var(--text-color); opacity: 0.8;">
+                                ${groupedByDate[dateKey].length} registro(s)
+                            </span>
+                        </div>
+                    `;
+                    
+                    groupedByDate[dateKey].forEach(record => {
+                        let statusText = '';
+                        let timeText = '';
+                        let details = '';
+                        
+                        if (record.type === 'administered') {
+                            const adminTime = new Date(record.timestamp);
+                            const adminTimeStr = adminTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                            
+                            if (record.delay > 0) {
+                                statusText = `<span class="history-status-badge badge-late" style="margin-left: 10px;">Atrasado (+${record.delay} min)</span>`;
+                            } else if (record.delay < 0) {
+                                statusText = `<span class="history-status-badge badge-on-time" style="margin-left: 10px;">Antecipado (${Math.abs(record.delay)} min antes)</span>`;
+                            } else {
+                                statusText = `<span class="history-status-badge badge-on-time" style="margin-left: 10px;">No horário</span>`;
+                            }
+                            
+                            timeText = `
+                                <div><span class="detail-label">Horário previsto:</span> ${record.timeOfDay === 'morning' ? 'Manhã (07:30)' : 'Noite (19:30)'}</div>
+                                <div><span class="detail-label">Horário real:</span> ${adminTimeStr}</div>
+                            `;
+                            
+                            details = `
+                                <div><span class="detail-label">Administrado em:</span> ${adminTime.toLocaleString('pt-BR')}</div>
+                            `;
+                        } else if (record.type === 'late') {
+                            statusText = `<span class="history-status-badge badge-late" style="margin-left: 10px;">Atrasado (+${record.delay} min)</span>`;
+                            timeText = `<div><span class="detail-label">Horário previsto:</span> ${record.timeOfDay === 'morning' ? 'Manhã (07:30)' : 'Noite (19:30)'}</div>`;
+                            details = `<div><span class="detail-label">Status:</span> Não administrado</div>`;
+                        } else if (record.type === 'pending') {
+                            statusText = `<span class="history-status-badge badge-pending" style="margin-left: 10px;">Pendente</span>`;
+                            timeText = `<div><span class="detail-label">Horário previsto:</span> ${record.timeOfDay === 'morning' ? 'Manhã (07:30)' : 'Noite (19:30)'}</div>`;
+                            details = `<div><span class="detail-label">Status:</span> Aguardando administração</div>`;
+                        }
+                        
+                        dateHTML += `
+                            <div style="background: var(--card-color); padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid var(--border-color);">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                                    <div>
+                                        <strong>${record.animalIcon} ${record.animalName}</strong>
+                                        <div style="font-size: 0.9rem; margin-top: 2px;">${record.medicationName} - ${record.dosage}</div>
+                                    </div>
+                                    ${statusText}
+                                </div>
+                                ${timeText}
+                                ${details}
+                                ${record.notes ? `<div class="history-note"><span class="detail-label">Observações:</span> ${record.notes}</div>` : ''}
+                                <div style="margin-top: 10px; display: flex; gap: 5px;">
+                                    ${record.type !== 'administered' ? `
+                                        <button class="btn btn-mark btn-small" onclick="vetSystem.markPendingMedication('${record.animalName}', '${record.medicationName}', '${record.date}', '${record.timeOfDay}')">
+                                            <i class="fas fa-check"></i> Marcar como Administrado
+                                        </button>
+                                    ` : ''}
+                                    <button class="btn btn-edit btn-small" onclick="vetSystem.viewHistoryDetails('${record.animalName}', '${record.medicationName}', '${record.timestamp || ''}')">
+                                        <i class="fas fa-eye"></i> Detalhes
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    dateSection.innerHTML = dateHTML;
+                    container.appendChild(dateSection);
+                });
+            }
+            
             populateHistoryFilters() {
                 const animalSelect = document.getElementById('history-animal-select');
                 const medicationSelect = document.getElementById('history-medication-select');
                 const animalSpecificSelect = document.getElementById('history-animal-specific-select');
                 const medicationSpecificSelect = document.getElementById('history-medication-specific-select');
+                const detailedAnimalSelect = document.getElementById('history-detailed-animal');
+                const exportAnimalSelect = document.getElementById('export-animal-select');
                 
-                if (animalSelect) {
-                    animalSelect.innerHTML = '<option value="all">Todos os animais</option>';
+                // Limpa e preenche todos os selects
+                const populateSelect = (selectElement, defaultValue, includeAllOption = true) => {
+                    if (!selectElement) return;
+                    
+                    selectElement.innerHTML = '';
+                    
+                    if (includeAllOption) {
+                        const allOption = document.createElement('option');
+                        allOption.value = defaultValue;
+                        allOption.textContent = defaultValue === 'all' ? 'Todos os animais' : 'Selecione...';
+                        selectElement.appendChild(allOption);
+                    }
+                    
                     Object.values(this.animals).forEach(animal => {
                         const option = document.createElement('option');
                         option.value = animal.id;
                         option.textContent = `${animal.icon} ${animal.name}`;
-                        animalSelect.appendChild(option);
+                        selectElement.appendChild(option);
                     });
-                }
+                };
                 
-                if (medicationSelect) {
-                    medicationSelect.innerHTML = '<option value="all">Todos os medicamentos</option>';
+                if (animalSelect) populateSelect(animalSelect, 'all');
+                if (animalSpecificSelect) populateSelect(animalSpecificSelect, '', false);
+                if (detailedAnimalSelect) populateSelect(detailedAnimalSelect, 'all');
+                if (exportAnimalSelect) populateSelect(exportAnimalSelect, 'all');
+                
+                // Preenche selects de medicamentos
+                const populateMedicationSelect = (selectElement, defaultValue, includeAllOption = true) => {
+                    if (!selectElement) return;
+                    
+                    selectElement.innerHTML = '';
+                    
+                    if (includeAllOption) {
+                        const allOption = document.createElement('option');
+                        allOption.value = defaultValue;
+                        allOption.textContent = defaultValue === 'all' ? 'Todos os medicamentos' : 'Selecione...';
+                        selectElement.appendChild(allOption);
+                    }
+                    
                     const medications = new Set();
                     
                     Object.values(this.animals).forEach(animal => {
@@ -2721,37 +3600,12 @@
                         const option = document.createElement('option');
                         option.value = medName;
                         option.textContent = medName;
-                        medicationSelect.appendChild(option);
+                        selectElement.appendChild(option);
                     });
-                }
+                };
                 
-                if (animalSpecificSelect) {
-                    animalSpecificSelect.innerHTML = '<option value="">Selecione um animal</option>';
-                    Object.values(this.animals).forEach(animal => {
-                        const option = document.createElement('option');
-                        option.value = animal.id;
-                        option.textContent = `${animal.icon} ${animal.name}`;
-                        animalSpecificSelect.appendChild(option);
-                    });
-                }
-                
-                if (medicationSpecificSelect) {
-                    medicationSpecificSelect.innerHTML = '<option value="">Selecione um medicamento</option>';
-                    const medications = new Set();
-                    
-                    Object.values(this.animals).forEach(animal => {
-                        Object.values(animal.medications).forEach(med => {
-                            medications.add(med.name);
-                        });
-                    });
-                    
-                    medications.forEach(medName => {
-                        const option = document.createElement('option');
-                        option.value = medName;
-                        option.textContent = medName;
-                        medicationSpecificSelect.appendChild(option);
-                    });
-                }
+                if (medicationSelect) populateMedicationSelect(medicationSelect, 'all');
+                if (medicationSpecificSelect) populateMedicationSelect(medicationSpecificSelect, '', false);
             }
             
             viewHistoryDetails(animalName, medicationName, timestamp) {
@@ -2759,9 +3613,29 @@
                 modal.className = 'modal';
                 modal.style.display = 'flex';
                 
-                const date = new Date(timestamp);
-                const formattedDate = date.toLocaleDateString('pt-BR');
-                const formattedTime = date.toLocaleTimeString('pt-BR');
+                let content = '';
+                
+                if (timestamp) {
+                    const date = new Date(timestamp);
+                    const formattedDate = date.toLocaleDateString('pt-BR');
+                    const formattedTime = date.toLocaleTimeString('pt-BR');
+                    const fullDateTime = date.toLocaleString('pt-BR');
+                    
+                    content = `
+                        <p><strong>Animal:</strong> ${animalName}</p>
+                        <p><strong>Medicamento:</strong> ${medicationName}</p>
+                        <p><strong>Data/Hora de Administração:</strong> ${fullDateTime}</p>
+                        <p><strong>Data:</strong> ${formattedDate}</p>
+                        <p><strong>Hora:</strong> ${formattedTime}</p>
+                    `;
+                } else {
+                    content = `
+                        <p><strong>Animal:</strong> ${animalName}</p>
+                        <p><strong>Medicamento:</strong> ${medicationName}</p>
+                        <p><strong>Status:</strong> Pendente ou não administrado</p>
+                        <p>Esta medicação ainda não foi administrada ou registrada no sistema.</p>
+                    `;
+                }
                 
                 modal.innerHTML = `
                     <div class="modal-content">
@@ -2770,9 +3644,7 @@
                             <button class="close-modal" onclick="this.closest('.modal').remove()">&times;</button>
                         </div>
                         <div>
-                            <p><strong>Animal:</strong> ${animalName}</p>
-                            <p><strong>Medicamento:</strong> ${medicationName}</p>
-                            <p><strong>Data/Hora:</strong> ${formattedDate} ${formattedTime}</p>
+                            ${content}
                         </div>
                         <div class="modal-actions">
                             <button class="btn btn-edit" onclick="this.closest('.modal').remove()">
@@ -2810,6 +3682,9 @@
                             <div class="controls">
                                 <button class="btn btn-add" onclick="openTab(null, 'tab-animals')">
                                     <i class="fas fa-plus"></i> Adicionar Animal
+                                </button>
+                                <button class="btn btn-load-cats" onclick="loadFrajolaNenemData()">
+                                    <i class="fas fa-cat"></i> Carregar Frajola e Neném
                                 </button>
                             </div>
                         </div>
@@ -3037,7 +3912,8 @@
                         timeOfDay: timeOfDay,
                         administered: true,
                         timestamp: new Date().toISOString(),
-                        status: isOverdue ? 'late' : 'ok'
+                        status: isOverdue ? 'late' : 'ok',
+                        notes: 'Administrado via interface principal'
                     });
                     
                     showNotification(`${med.name} marcado como administrado!`);
@@ -3114,7 +3990,8 @@
                             timeOfDay: timeOfDay,
                             administered: true,
                             timestamp: new Date().toISOString(),
-                            status: isOverdue ? 'late' : 'ok'
+                            status: isOverdue ? 'late' : 'ok',
+                            notes: 'Administrado em massa'
                         });
                         
                         count++;
@@ -4249,39 +5126,40 @@
                 
                 const selectedAnimal = animalSelect.value;
                 const selectedMedication = medicationSelect.value;
-                const selectedPeriod = parseInt(periodSelect.value);
+                const selectedPeriod = periodSelect.value;
                 
                 const today = new Date();
-                const startDate = new Date(today);
-                startDate.setDate(today.getDate() - selectedPeriod);
+                let startDate;
                 
-                const history = [];
-                
-                Object.entries(this.animals).forEach(([animalId, animal]) => {
-                    if (selectedAnimal !== 'all' && animalId !== selectedAnimal) return;
+                if (selectedPeriod === 'custom') {
+                    const customStartDate = document.getElementById('custom-start-date').value;
+                    const customEndDate = document.getElementById('custom-end-date').value;
                     
-                    Object.entries(animal.medications).forEach(([medId, med]) => {
-                        if (selectedMedication !== 'all' && medId !== selectedMedication) return;
-                        
-                        med.history.forEach(record => {
-                            const recordDate = new Date(record.timestamp);
-                            if (recordDate >= startDate && recordDate <= today) {
-                                history.push({
-                                    animalName: animal.name,
-                                    medicationName: med.name,
-                                    dosage: med.dosage,
-                                    timeOfDay: record.timeOfDay || med.schedule,
-                                    timestamp: record.timestamp,
-                                    status: record.status || 'ok'
-                                });
-                            }
-                        });
-                    });
-                });
-                
-                history.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-                
-                const title = `Histórico de Medicações - ${startDate.toLocaleDateString('pt-BR')} a ${today.toLocaleDateString('pt-BR')}`;
+                    if (!customStartDate || !customEndDate) {
+                        showNotification('Por favor, selecione as datas para o período personalizado!', 'warning');
+                        return;
+                    }
+                    
+                    startDate = new Date(customStartDate);
+                    const endDate = new Date(customEndDate);
+                    
+                    // Ajusta para incluir todo o dia final
+                    endDate.setHours(23, 59, 59, 999);
+                    
+                    const history = this.getFilteredHistory(selectedAnimal, selectedMedication, startDate, endDate);
+                    this.renderHistoryPDF(doc, history, startDate, endDate);
+                } else {
+                    const periodDays = parseInt(selectedPeriod);
+                    startDate = new Date(today);
+                    startDate.setDate(today.getDate() - periodDays);
+                    
+                    const history = this.getFilteredHistory(selectedAnimal, selectedMedication, startDate, today);
+                    this.renderHistoryPDF(doc, history, startDate, today);
+                }
+            }
+            
+            renderHistoryPDF(doc, history, startDate, endDate) {
+                const title = `Histórico de Medicações - ${startDate.toLocaleDateString('pt-BR')} a ${endDate.toLocaleDateString('pt-BR')}`;
                 doc.setFontSize(16);
                 doc.text(title, 14, 20);
                 
@@ -4290,9 +5168,37 @@
                     doc.text('Nenhum registro encontrado no período selecionado.', 14, 40);
                 } else {
                     const tableData = history.map(record => {
-                        const date = new Date(record.timestamp);
-                        const formattedDate = date.toLocaleDateString('pt-BR');
-                        const formattedTime = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                        let formattedDate = '';
+                        let formattedTime = '';
+                        let status = '';
+                        let delay = '';
+                        
+                        if (record.type === 'administered') {
+                            const date = new Date(record.timestamp);
+                            formattedDate = date.toLocaleDateString('pt-BR');
+                            formattedTime = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                            
+                            if (record.delay > 0) {
+                                status = 'Atrasado';
+                                delay = `+${record.delay} min`;
+                            } else if (record.delay < 0) {
+                                status = 'Antecipado';
+                                delay = `${Math.abs(record.delay)} min antes`;
+                            } else {
+                                status = 'No prazo';
+                                delay = 'No horário';
+                            }
+                        } else if (record.type === 'late') {
+                            formattedDate = new Date(record.date).toLocaleDateString('pt-BR');
+                            formattedTime = '--:--';
+                            status = 'Atrasado';
+                            delay = `+${record.delay} min`;
+                        } else if (record.type === 'pending') {
+                            formattedDate = new Date(record.date).toLocaleDateString('pt-BR');
+                            formattedTime = '--:--';
+                            status = 'Pendente';
+                            delay = '';
+                        }
                         
                         return [
                             formattedDate,
@@ -4301,13 +5207,14 @@
                             record.medicationName,
                             record.dosage,
                             record.timeOfDay === 'morning' ? 'Manhã' : 'Noite',
-                            record.status === 'late' ? 'Atrasado' : 'No prazo'
+                            status,
+                            delay
                         ];
                     });
                     
                     doc.autoTable({
                         startY: 30,
-                        head: [['Data', 'Hora', 'Animal', 'Medicação', 'Dosagem', 'Horário', 'Status']],
+                        head: [['Data', 'Hora', 'Animal', 'Medicação', 'Dosagem', 'Horário', 'Status', 'Atraso']],
                         body: tableData,
                         theme: 'grid',
                         styles: { fontSize: 8 },
@@ -4321,7 +5228,7 @@
                     });
                 }
                 
-                const filename = `historico-${startDate.toISOString().split('T')[0]}-a-${today.toISOString().split('T')[0]}.pdf`;
+                const filename = `historico-${startDate.toISOString().split('T')[0]}-a-${endDate.toISOString().split('T')[0]}.pdf`;
                 doc.save(filename);
                 showNotification(`PDF exportado: ${filename}`);
             }
@@ -4352,12 +5259,22 @@
                     med.history.forEach(record => {
                         const recordDate = new Date(record.timestamp);
                         if (recordDate >= startDate && recordDate <= today) {
+                            // Determina o horário previsto
+                            let scheduledTime = this.getScheduledTime(record.date.split('_')[0], record.timeOfDay || med.schedule);
+                            let delayMinutes = null;
+                            
+                            if (scheduledTime) {
+                                delayMinutes = Math.round((recordDate - scheduledTime) / (1000 * 60));
+                            }
+                            
                             history.push({
                                 medicationName: med.name,
                                 dosage: med.dosage,
                                 timeOfDay: record.timeOfDay || med.schedule,
                                 timestamp: record.timestamp,
-                                status: record.status || 'ok'
+                                status: record.status || 'ok',
+                                scheduledTime: scheduledTime,
+                                delay: delayMinutes
                             });
                         }
                     });
@@ -4381,19 +5298,34 @@
                         const formattedDate = date.toLocaleDateString('pt-BR');
                         const formattedTime = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
                         
+                        let status = '';
+                        let delay = '';
+                        
+                        if (record.delay > 0) {
+                            status = 'Atrasado';
+                            delay = `+${record.delay} min`;
+                        } else if (record.delay < 0) {
+                            status = 'Antecipado';
+                            delay = `${Math.abs(record.delay)} min antes`;
+                        } else {
+                            status = 'No prazo';
+                            delay = 'No horário';
+                        }
+                        
                         return [
                             formattedDate,
                             formattedTime,
                             record.medicationName,
                             record.dosage,
                             record.timeOfDay === 'morning' ? 'Manhã' : 'Noite',
-                            record.status === 'late' ? 'Atrasado' : 'No prazo'
+                            status,
+                            delay
                         ];
                     });
                     
                     doc.autoTable({
                         startY: 40,
-                        head: [['Data', 'Hora', 'Medicação', 'Dosagem', 'Horário', 'Status']],
+                        head: [['Data', 'Hora', 'Medicação', 'Dosagem', 'Horário', 'Status', 'Atraso']],
                         body: tableData,
                         theme: 'grid',
                         styles: { fontSize: 8 },
@@ -4439,12 +5371,22 @@
                             med.history.forEach(record => {
                                 const recordDate = new Date(record.timestamp);
                                 if (recordDate >= startDate && recordDate <= today) {
+                                    // Determina o horário previsto
+                                    let scheduledTime = this.getScheduledTime(record.date.split('_')[0], record.timeOfDay || med.schedule);
+                                    let delayMinutes = null;
+                                    
+                                    if (scheduledTime) {
+                                        delayMinutes = Math.round((recordDate - scheduledTime) / (1000 * 60));
+                                    }
+                                    
                                     history.push({
                                         animalName: animal.name,
                                         dosage: med.dosage,
                                         timeOfDay: record.timeOfDay || med.schedule,
                                         timestamp: record.timestamp,
-                                        status: record.status || 'ok'
+                                        status: record.status || 'ok',
+                                        scheduledTime: scheduledTime,
+                                        delay: delayMinutes
                                     });
                                 }
                             });
@@ -4467,19 +5409,34 @@
                         const formattedDate = date.toLocaleDateString('pt-BR');
                         const formattedTime = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
                         
+                        let status = '';
+                        let delay = '';
+                        
+                        if (record.delay > 0) {
+                            status = 'Atrasado';
+                            delay = `+${record.delay} min`;
+                        } else if (record.delay < 0) {
+                            status = 'Antecipado';
+                            delay = `${Math.abs(record.delay)} min antes`;
+                        } else {
+                            status = 'No prazo';
+                            delay = 'No horário';
+                        }
+                        
                         return [
                             formattedDate,
                             formattedTime,
                             record.animalName,
                             record.dosage,
                             record.timeOfDay === 'morning' ? 'Manhã' : 'Noite',
-                            record.status === 'late' ? 'Atrasado' : 'No prazo'
+                            status,
+                            delay
                         ];
                     });
                     
                     doc.autoTable({
                         startY: 30,
-                        head: [['Data', 'Hora', 'Animal', 'Dosagem', 'Horário', 'Status']],
+                        head: [['Data', 'Hora', 'Animal', 'Dosagem', 'Horário', 'Status', 'Atraso']],
                         body: tableData,
                         theme: 'grid',
                         styles: { fontSize: 8 },
@@ -4494,6 +5451,161 @@
                 }
                 
                 const filename = `historico-${medicationName.replace(/[^a-z0-9]/gi, '-')}-${startDate.toISOString().split('T')[0]}-a-${today.toISOString().split('T')[0]}.pdf`;
+                doc.save(filename);
+                showNotification(`PDF exportado: ${filename}`);
+            }
+            
+            exportDetailedHistoryPDF() {
+                const animalSelect = document.getElementById('history-detailed-animal');
+                const periodSelect = document.getElementById('history-detailed-period');
+                const statusSelect = document.getElementById('history-detailed-status');
+                
+                if (!animalSelect || !periodSelect || !statusSelect) return;
+                
+                const selectedAnimal = animalSelect.value;
+                const selectedPeriod = periodSelect.value;
+                const selectedStatus = statusSelect.value;
+                
+                // Calcula as datas com base no período
+                const today = new Date();
+                let startDate = new Date(today);
+                
+                switch(selectedPeriod) {
+                    case 'today':
+                        startDate.setHours(0, 0, 0, 0);
+                        break;
+                    case 'yesterday':
+                        startDate.setDate(today.getDate() - 1);
+                        startDate.setHours(0, 0, 0, 0);
+                        const yesterdayEnd = new Date(today);
+                        yesterdayEnd.setDate(today.getDate() - 1);
+                        yesterdayEnd.setHours(23, 59, 59, 999);
+                        today.setTime(yesterdayEnd.getTime());
+                        break;
+                    case 'week':
+                        startDate.setDate(today.getDate() - 7);
+                        break;
+                    case 'month':
+                        startDate.setMonth(today.getMonth() - 1);
+                        break;
+                    case 'last30':
+                        startDate.setDate(today.getDate() - 30);
+                        break;
+                }
+                
+                // Obtém o histórico filtrado
+                const allHistory = this.getFilteredHistory(
+                    selectedAnimal === 'all' ? 'all' : selectedAnimal,
+                    'all',
+                    startDate,
+                    today
+                );
+                
+                // Filtra por status
+                let filteredHistory = allHistory;
+                if (selectedStatus !== 'all') {
+                    filteredHistory = allHistory.filter(record => {
+                        if (selectedStatus === 'administered') {
+                            return record.type === 'administered';
+                        } else if (selectedStatus === 'pending') {
+                            return record.type === 'pending';
+                        } else if (selectedStatus === 'late') {
+                            return record.type === 'late';
+                        } else if (selectedStatus === 'on-time') {
+                            return record.type === 'administered' && record.delay <= 0;
+                        }
+                        return true;
+                    });
+                }
+                
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                const title = `Relatório Detalhado - ${startDate.toLocaleDateString('pt-BR')} a ${today.toLocaleDateString('pt-BR')}`;
+                doc.setFontSize(16);
+                doc.text(title, 14, 20);
+                
+                doc.setFontSize(10);
+                doc.text(`Filtros: Animal: ${selectedAnimal === 'all' ? 'Todos' : selectedAnimal}, Período: ${selectedPeriod}, Status: ${selectedStatus}`, 14, 30);
+                
+                if (filteredHistory.length === 0) {
+                    doc.setFontSize(12);
+                    doc.text('Nenhum registro encontrado com os filtros selecionados.', 14, 45);
+                } else {
+                    let y = 45;
+                    
+                    // Agrupa por data
+                    const groupedByDate = {};
+                    filteredHistory.forEach(record => {
+                        const dateKey = record.date;
+                        if (!groupedByDate[dateKey]) {
+                            groupedByDate[dateKey] = [];
+                        }
+                        groupedByDate[dateKey].push(record);
+                    });
+                    
+                    // Ordena as datas (mais recente primeiro)
+                    const sortedDates = Object.keys(groupedByDate).sort((a, b) => {
+                        return new Date(b) - new Date(a);
+                    });
+                    
+                    sortedDates.forEach(dateKey => {
+                        const date = new Date(dateKey);
+                        const formattedDate = date.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+                        
+                        doc.setFontSize(12);
+                        doc.text(formattedDate, 14, y);
+                        y += 7;
+                        
+                        groupedByDate[dateKey].forEach(record => {
+                            let statusText = '';
+                            let timeText = '';
+                            
+                            if (record.type === 'administered') {
+                                const adminTime = new Date(record.timestamp);
+                                const adminTimeStr = adminTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                                
+                                if (record.delay > 0) {
+                                    statusText = ` (Atrasado: +${record.delay} min)`;
+                                } else if (record.delay < 0) {
+                                    statusText = ` (Antecipado: ${Math.abs(record.delay)} min antes)`;
+                                } else {
+                                    statusText = ` (No horário)`;
+                                }
+                                
+                                timeText = ` - ${adminTimeStr}`;
+                            } else if (record.type === 'late') {
+                                statusText = ` (Atrasado: +${record.delay} min)`;
+                                timeText = ' - Não administrado';
+                            } else if (record.type === 'pending') {
+                                statusText = ' (Pendente)';
+                                timeText = ' - Aguardando administração';
+                            }
+                            
+                            doc.setFontSize(10);
+                            const line = `• ${record.animalName}: ${record.medicationName} - ${record.dosage}${timeText}${statusText}`;
+                            
+                            // Verifica se cabe na página
+                            if (y > 280) {
+                                doc.addPage();
+                                y = 20;
+                            }
+                            
+                            doc.text(line, 20, y);
+                            y += 5;
+                        });
+                        
+                        y += 5;
+                        
+                        // Verifica se precisa de nova página
+                        if (y > 280) {
+                            doc.addPage();
+                            y = 20;
+                        }
+                    });
+                }
+                
+                const filename = `relatorio-detalhado-${startDate.toISOString().split('T')[0]}-a-${today.toISOString().split('T')[0]}.pdf`;
                 doc.save(filename);
                 showNotification(`PDF exportado: ${filename}`);
             }
@@ -4660,8 +5772,16 @@
             vetSystem.loadMedicationsFromJSON();
         }
 
-        function loadDefaultCats() {
-            vetSystem.loadDefaultCats();
+        function loadFrajolaNenemData() {
+            vetSystem.loadFrajolaNenemData();
+        }
+
+        function loadSampleData() {
+            vetSystem.loadSampleData();
+        }
+
+        function clearAllData() {
+            vetSystem.clearAllData();
         }
 
         function closeDayModal() {
@@ -4736,6 +5856,10 @@
             vetSystem.updateMedicationHistory();
         }
 
+        function updateDetailedHistory() {
+            vetSystem.updateDetailedHistory();
+        }
+
         function exportHistoryToPDF() {
             vetSystem.exportHistoryToPDF();
         }
@@ -4746,6 +5870,10 @@
 
         function exportMedicationHistoryPDF() {
             vetSystem.exportMedicationHistoryPDF();
+        }
+
+        function exportDetailedHistoryPDF() {
+            vetSystem.exportDetailedHistoryPDF();
         }
 
         function openTab(evt, tabName) {
@@ -4778,11 +5906,20 @@
                     }
                 }
             }
+            
+            // Atualiza os dados da tab se for uma tab de histórico
+            if (tabName === 'history-animal') {
+                vetSystem.updateAnimalHistory();
+            } else if (tabName === 'history-medication') {
+                vetSystem.updateMedicationHistory();
+            } else if (tabName === 'history-detailed') {
+                vetSystem.updateDetailedHistory();
+            }
         }
 
         function openHistoryTab(evt, tabName) {
             // Esconde todos os conteúdos das tabs
-            const historyTabs = document.querySelectorAll('#history-all, #history-animal, #history-medication');
+            const historyTabs = document.querySelectorAll('#history-all, #history-animal, #history-medication, #history-detailed');
             historyTabs.forEach(tab => tab.classList.remove('active'));
             
             // Remove a classe active de todos os botões
@@ -4804,6 +5941,8 @@
                 vetSystem.updateAnimalHistory();
             } else if (tabName === 'history-medication') {
                 vetSystem.updateMedicationHistory();
+            } else if (tabName === 'history-detailed') {
+                vetSystem.updateDetailedHistory();
             }
         }
 
