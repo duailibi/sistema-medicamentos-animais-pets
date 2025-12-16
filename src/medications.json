@@ -1,0 +1,165 @@
+{
+  "medications": {
+    "vetmax_plus": {
+      "id": "vetmax_plus",
+      "name": "Vetmax Plus",
+      "common_dosage": "½ comprimido",
+      "type": "antibiótico",
+      "category": "comprimido",
+      "description": "Antibiótico de amplo espectro para tratamento de infecções em felinos",
+      "side_effects": "Pode causar vômito, diarreia ou perda de apetite temporariamente",
+      "contraindications": "Animais com hipersensibilidade ao princípio ativo",
+      "administration_notes": "Administrar preferencialmente com alimentos para reduzir irritação gástrica"
+    },
+    "omegablue_esqualeno": {
+      "id": "omegablue_esqualeno",
+      "name": "Omegablue Esqualeno",
+      "common_dosage": "1 cápsula",
+      "type": "suplemento",
+      "category": "cápsula",
+      "description": "Suplemento rico em ômega-3 e esqualeno para saúde da pele e pelagem",
+      "side_effects": "Raros, mas podem incluir alterações no hálito",
+      "contraindications": "Animais com histórico de alergias a produtos do mar",
+      "administration_notes": "Pode ser administrado com ou sem alimentos"
+    },
+    "petsporin_75mg": {
+      "id": "petsporin_75mg",
+      "name": "Petsporin 75 mg",
+      "common_dosage": "½ comprimido",
+      "type": "antibiótico",
+      "category": "comprimido",
+      "description": "Antibiótico para tratamento de infecções bacterianas em pequenos animais",
+      "side_effects": "Possíveis reações alérgicas, alterações gastrointestinais",
+      "contraindications": "Animais com insuficiência renal grave",
+      "administration_notes": "Completar todo o tratamento mesmo com melhora dos sintomas"
+    },
+    "mellis_vet_05mg": {
+      "id": "mellis_vet_05mg",
+      "name": "Mellis Vet 0,5 mg",
+      "common_dosage": "1 comprimido",
+      "type": "analgésico",
+      "category": "comprimido",
+      "description": "Analgésico e anti-inflamatório para alívio da dor e febre",
+      "side_effects": "Sonolência, tontura, alterações gastrointestinais",
+      "contraindications": "Animais com úlceras gástricas ou problemas hepáticos",
+      "administration_notes": "Administrar após as refeições para reduzir irritação gástrica"
+    },
+    "hemocare": {
+      "id": "hemocare",
+      "name": "Hemocare",
+      "common_dosage": "0,4 ml",
+      "type": "suplemento",
+      "category": "líquido",
+      "description": "Suplemento hematínico para prevenção e tratamento de anemias",
+      "side_effects": "Pode escurecer as fezes temporariamente",
+      "contraindications": "Animais com doenças que causem acúmulo de ferro",
+      "administration_notes": "Agitar bem antes de usar. Administrar com seringa oral"
+    },
+    "promun_cat_pasta": {
+      "id": "promun_cat_pasta",
+      "name": "Promun Cat Pasta",
+      "common_dosage": "2 ml",
+      "type": "suplemento",
+      "category": "pasta",
+      "description": "Suplemento vitamínico e mineral para gatos",
+      "side_effects": "Raros nas doses recomendadas",
+      "contraindications": "Não conhecidas nas doses recomendadas",
+      "administration_notes": "Pode ser misturado à comida ou administrado diretamente na boca"
+    },
+    "dipirona_gotas": {
+      "id": "dipirona_gotas",
+      "name": "Dipirona gotas",
+      "common_dosage": "3 gotas",
+      "type": "analgésico",
+      "category": "líquido",
+      "description": "Analgésico e antipirético para alívio da dor e febre",
+      "side_effects": "Em casos raros, pode causar reações alérgicas",
+      "contraindications": "Animais com história de alergia a dipirona",
+      "administration_notes": "Diluir em pequena quantidade de água ou misturar à comida"
+    },
+    "vetaglos_pomada": {
+      "id": "vetaglos_pomada",
+      "name": "Vetaglós pomada",
+      "common_dosage": "Aplicação tópica",
+      "type": "pomada",
+      "category": "tópico",
+      "description": "Pomada cicatrizante e antibacteriana para feridas cutâneas",
+      "side_effects": "Raros, mas podem incluir reações de hipersensibilidade local",
+      "contraindications": "Feridas profundas ou infectadas que necessitem de tratamento sistêmico",
+      "administration_notes": "Limpar bem a área antes da aplicação. Aplicar 2-3 vezes ao dia"
+    }
+  },
+  "categories": {
+    "antibiótico": {
+      "name": "Antibióticos",
+      "description": "Medicamentos para tratamento de infecções bacterianas",
+      "color": "#4CAF50"
+    },
+    "analgésico": {
+      "name": "Analgésicos",
+      "description": "Medicamentos para alívio da dor",
+      "color": "#2196F3"
+    },
+    "suplemento": {
+      "name": "Suplementos",
+      "description": "Complementos nutricionais para saúde geral",
+      "color": "#FF9800"
+    },
+    "pomada": {
+      "name": "Pomadas",
+      "description": "Medicamentos de uso tópico para pele e feridas",
+      "color": "#9C27B0"
+    }
+  },
+  "administration_routes": {
+    "oral": {
+      "name": "Via Oral",
+      "description": "Medicamentos administrados pela boca"
+    },
+    "topical": {
+      "name": "Uso Tópico",
+      "description": "Medicamentos aplicados diretamente na pele"
+    }
+  },
+  "frequency_options": {
+    "daily": {
+      "name": "1x ao dia",
+      "description": "Uma vez por dia"
+    },
+    "12h": {
+      "name": "12/12h",
+      "description": "A cada 12 horas"
+    },
+    "48h": {
+      "name": "A cada 48h",
+      "description": "Um dia sim, um dia não"
+    },
+    "weekly": {
+      "name": "1x por semana",
+      "description": "Uma vez por semana"
+    },
+    "custom": {
+      "name": "Personalizado",
+      "description": "Intervalo personalizado"
+    }
+  },
+  "schedule_options": {
+    "morning": {
+      "name": "Manhã",
+      "time_range": "07:30-08:00",
+      "icon": "☀️"
+    },
+    "night": {
+      "name": "Noite",
+      "time_range": "19:30-21:00",
+      "icon": "🌙"
+    },
+    "both": {
+      "name": "Manhã e Noite",
+      "time_range": "07:30-08:00 e 19:30-21:00",
+      "icon": "🌓"
+    }
+  },
+  "lastUpdated": "2025-12-14T10:30:00.000Z",
+  "version": "1.0"
+}
