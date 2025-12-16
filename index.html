@@ -1267,7 +1267,7 @@
         <!-- Seção de Carregamento de Dados -->
         <div class="data-load-section">
             <h2><i class="fas fa-database"></i> Carregar Dados Predefinidos</h2>
-            <p>Carregue os dados dos seus gatos para começar a usar o sistema imediatamente</p>
+            <p>Carregue os dados dos seus pets para começar a usar o sistema imediatamente</p>
             <div class="data-load-buttons">
                 <button class="btn btn-load-cats" onclick="loadFrajolaNenemData()">
                     <i class="fas fa-cat"></i> Carregar Frajola e Neném
@@ -1277,7 +1277,7 @@
                 </button>
             </div>
             <div class="history-note" style="margin-top: 15px;">
-                <i class="fas fa-info-circle"></i> Os dados dos seus gatos incluem todos os medicamentos e horários pré-configurados
+                <i class="fas fa-info-circle"></i> Os dados dos seus pets incluem todos os medicamentos e horários pré-configurados
             </div>
         </div>
         
@@ -2126,7 +2126,7 @@
                     const response = await fetch('frajola_e_nenem.json');
                     if (response.ok) {
                         const data = await response.json();
-                        if (confirm('Isso irá carregar os dados dos seus gatos (Frajola e Neném) com todos os medicamentos e horários. Deseja continuar?')) {
+                        if (confirm('Isso irá carregar os dados dos gatos (Frajola e Neném) com todos os medicamentos e horários. Deseja continuar? Não esqueça de marcar os atrasados porque está pré-configurado, e atualizar manualmente')) {
                             this.animals = data.animals || {};
                             this.calendarMonth = data.calendarMonth || new Date().getMonth();
                             this.calendarYear = data.calendarYear || new Date().getFullYear();
@@ -2145,14 +2145,14 @@
                             this.updateUpcomingMedications();
                             this.updateIndicators();
                             this.updateHistoryTable();
-                            showNotification('Dados dos seus gatos carregados com sucesso!');
+                            showNotification('Dados dos seus pets carregados com sucesso!');
                         }
                     } else {
                         throw new Error('Arquivo não encontrado');
                     }
                 } catch (error) {
-                    console.error('Erro ao carregar dados dos gatos:', error);
-                    showNotification('Erro ao carregar dados dos gatos. Verifique se o arquivo frajola_e_nenem.json está na pasta correta.', 'warning');
+                    console.error('Erro ao carregar dados dos pets:', error);
+                    showNotification('Erro ao carregar dados dos pets. Verifique se o arquivo frajola_e_nenem.json está na pasta correta.', 'warning');
                     
                     // Usa dados embutidos como fallback
                     const data = {
@@ -3673,7 +3673,7 @@
                     container.innerHTML = `
                         <div style="text-align: center; padding: 40px; background: var(--card-color); border-radius: 15px; border: 2px dashed var(--border-color);">
                             <h3 style="margin-bottom: 20px;">Nenhum animal cadastrado</h3>
-                            <p style="margin-bottom: 20px;">Você pode adicionar animais manualmente ou carregar os dados dos seus gatos.</p>
+                            <p style="margin-bottom: 20px;">Você pode adicionar animais manualmente ou carregar os dados dos seus pets.</p>
                             <div class="controls">
                                 <button class="btn btn-add" onclick="openTab(null, 'tab-animals')">
                                     <i class="fas fa-plus"></i> Adicionar Animal
